@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../services/LotStockService.php';
 require_once __DIR__ . '/../services/DecisionEngine.php';
+require_once __DIR__ . '/../services/FactureService.php';
 
 $user = require_auth();
 
@@ -82,6 +83,7 @@ if ($method === 'POST' && $id && $subAction === 'annuler') {
         }
 
         $pdo->prepare("UPDATE vente SET statut = 'annulee' WHERE id = ?")->execute([$id]);
+        FactureService::annulerByVente($id);
         $pdo->commit();
         audit((int) $user['id'], 'annulation_vente', 'vente', $id);
         json_response(['success' => true]);
@@ -155,6 +157,10 @@ if ($method === 'POST') {
         }
 
         $pdo->prepare('UPDATE vente SET montant_total = ? WHERE id = ?')->execute([$total, $idVente]);
+
+        $modePaiement = strtoupper(trim($data['mode_paiement'] ?? 'ESPECES'));
+        $idFacture = FactureService::createFromVente($pdo, $idVente, $total, $modePaiement);
+
         $pdo->commit();
         audit((int) $user['id'], 'vente', 'vente', $idVente);
 
@@ -163,7 +169,15 @@ if ($method === 'POST') {
         } catch (Throwable) {
         }
 
-        json_response(['success' => true, 'id' => $idVente, 'total' => $total, 'ticket_url' => "api/index.php?r=tickets/$idVente"]);
+        json_response([
+            'success' => true,
+            'id' => $idVente,
+            'total' => $total,
+            'id_facture' => $idFacture,
+            'ticket_url' => "api/index.php?r=tickets/$idVente",
+            'facture_html_url' => "api/index.php?r=factures/$idFacture/html",
+            'facture_pdf_url' => "api/index.php?r=factures/$idFacture/pdf",
+        ]);
     } catch (Throwable $e) {
         $pdo->rollBack();
         json_error($e->getMessage(), 422);

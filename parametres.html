@@ -155,18 +155,44 @@
                           </div>
                           <p class="pharma-field-hint mt-2 mb-0"><i class="ti-info-alt"></i> L'email servira aux notifications externes (SMTP à configurer).</p>
                         </div>
+                        <div class="pharma-form-section">
+                          <div class="pharma-form-section__title">Facturation légale</div>
+                          <div class="pharma-form-grid pharma-form-grid--3">
+                            <div>
+                              <label for="nif">NIF / Identifiant fiscal</label>
+                              <input type="text" class="form-control" id="nif" name="nif" placeholder="M123456789" />
+                            </div>
+                            <div>
+                              <label for="rccm">RCCM</label>
+                              <input type="text" class="form-control" id="rccm" name="rccm" placeholder="RC/DLA/2024/B/123" />
+                            </div>
+                            <div>
+                              <label for="prefixe_facture">Préfixe factures</label>
+                              <input type="text" class="form-control" id="prefixe_facture" name="prefixe_facture" placeholder="FA" maxlength="10" />
+                            </div>
+                            <div>
+                              <label for="taux_tva">Taux TVA (%)</label>
+                              <input type="number" class="form-control" id="taux_tva" name="taux_tva" step="0.1" min="0" value="0" />
+                              <span class="pharma-field-hint">0 = pas de TVA sur facture</span>
+                            </div>
+                            <div class="span-2">
+                              <label for="mention_legale_facture">Mentions légales (pied de facture)</label>
+                              <textarea class="form-control" id="mention_legale_facture" name="mention_legale_facture" rows="2" placeholder="Merci de votre confiance. Les médicaments ne sont ni repris ni échangés."></textarea>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
                   <div class="col-lg-4 grid-margin stretch-card">
                     <div class="pharma-side-panel pharma-side-panel--sticky" id="panel-identite">
-                      <div class="pharma-side-panel__icon"><i class="ti-ticket"></i></div>
-                      <h6>Tickets de caisse</h6>
-                      <p>Le nom et la devise configurés ici apparaissent sur chaque ticket imprimé après une vente.</p>
+                      <div class="pharma-side-panel__icon"><i class="ti-receipt"></i></div>
+                      <h6>Factures &amp; tickets</h6>
+                      <p>Le nom, NIF et mentions légales apparaissent sur chaque facture PDF générée après paiement.</p>
                       <ul>
-                        <li>Nom visible en en-tête du ticket</li>
-                        <li>Devise utilisée pour les montants</li>
-                        <li>Adresse optionnelle sur documents futurs</li>
+                        <li>Numérotation automatique FA-ANNÉE-XXXXX</li>
+                        <li>TVA calculée si taux &gt; 0</li>
+                        <li>Ticket caisse compact en complément</li>
                       </ul>
                     </div>
                   </div>

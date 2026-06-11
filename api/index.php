@@ -55,6 +55,8 @@ try {
         'inventaire' => require __DIR__ . '/routes/inventaire.php',
         'caisse' => require __DIR__ . '/routes/caisse.php',
         'tickets' => require __DIR__ . '/routes/tickets.php',
+        'factures' => require __DIR__ . '/routes/factures.php',
+        'import' => require __DIR__ . '/routes/import.php',
         'audit' => require __DIR__ . '/routes/audit.php',
         'bons-commande' => require __DIR__ . '/routes/bons_commande.php',
         'preferences' => require __DIR__ . '/routes/preferences.php',

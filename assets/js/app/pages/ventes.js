@@ -35,7 +35,8 @@
       <td>${annulee ? '<span class="badge badge-secondary">Annulée</span>' : '<span class="badge badge-success">Validée</span>'}</td>
       <td><div class="pharma-actions">
         <button class="btn-action btn-action--view" title="Détail" data-detail="${v.id}"><i class="ti-eye"></i></button>
-        ${!annulee ? `<button class="btn-action btn-action--view" title="Ticket" data-ticket="${v.id}"><i class="ti-printer"></i></button>` : ''}
+        ${!annulee ? `<button class="btn-action btn-action--view" title="Facture" data-facture="${v.id}"><i class="ti-receipt"></i></button>
+        <button class="btn-action btn-action--view" title="Ticket" data-ticket="${v.id}"><i class="ti-printer"></i></button>` : ''}
         ${canCancel && !annulee ? `<button class="btn-action btn-action--delete" title="Annuler" data-cancel="${v.id}"><i class="ti-undo"></i></button>` : ''}
       </div></td>
     </tr>`;
@@ -44,6 +45,14 @@
     tbody.querySelectorAll('[data-detail]').forEach((b) => b.addEventListener('click', () => showDetail(b.dataset.detail)));
     tbody.querySelectorAll('[data-ticket]').forEach((b) => b.addEventListener('click', () => {
       window.open(`api/index.php?r=tickets/${b.dataset.ticket}`, '_blank', 'width=400,height=600');
+    }));
+    tbody.querySelectorAll('[data-facture]').forEach((b) => b.addEventListener('click', async () => {
+      try {
+        const f = await PharmaAPI.get(`factures/vente/${b.dataset.facture}`);
+        window.open(`api/index.php?r=factures/${f.data.id}/html`, '_blank');
+      } catch (e) {
+        PharmaSwal.error('Facture', e.message);
+      }
     }));
     tbody.querySelectorAll('[data-cancel]').forEach((b) => b.addEventListener('click', async () => {
       if (!await PharmaSwal.confirm({ icon: 'warning', title: 'Annuler cette vente ?', html: 'Le stock sera remis à jour (FEFO inversé).', confirmText: 'Oui, annuler' })) return;

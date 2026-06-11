@@ -27,11 +27,24 @@ const PharmaAPI = (() => {
     return data;
   }
 
+  async function upload(route, formData) {
+    const res = await fetch(buildUrl(route), {
+      credentials: 'include',
+      method: 'POST',
+      body: formData,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Erreur serveur');
+    return data;
+  }
+
   return {
     get: (route) => request(route),
     post: (route, body) => request(route, { method: 'POST', body: JSON.stringify(body) }),
     put: (route, body) => request(route, { method: 'PUT', body: JSON.stringify(body) }),
     del: (route) => request(route, { method: 'DELETE' }),
+    upload,
+    buildUrl,
   };
 })();
 

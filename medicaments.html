@@ -80,6 +80,7 @@
           <ul class="nav nav-tabs pharma-tabs" id="page-tabs" data-default-tab="liste">
             <li class="nav-item"><a class="nav-link tab-link" data-tab="form" href="#form"><i class="ti-pencil"></i> Formulaire</a></li>
             <li class="nav-item"><a class="nav-link active tab-link" data-tab="liste" href="#liste"><i class="ti-view-list"></i> Liste</a></li>
+            <li class="nav-item"><a class="nav-link tab-link" data-tab="import" href="#import"><i class="ti-upload"></i> Import Excel</a></li>
           </ul>
 
           <div class="tab-content">
@@ -124,6 +125,50 @@
                     <h6>Conseils catalogue</h6>
                     <p>Définissez un stock minimum pour déclencher les alertes sur le dashboard et la page Stock.</p>
                     <ul><li>Marge calculée automatiquement</li><li>Stock synchronisé avec la caisse</li><li>Catégories via le menu dédié</li></ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="tab-pane fade" id="import">
+              <div class="row pharma-split-form">
+                <div class="col-lg-8 grid-margin stretch-card">
+                  <div class="card pharma-card">
+                    <div class="card-body pharma-form">
+                      <div class="pharma-card-header">
+                        <div class="pharma-card-header__icon pharma-card-header__icon--success"><i class="ti-upload"></i></div>
+                        <div>
+                          <h6 class="pharma-card-header__title">Import catalogue</h6>
+                          <p class="pharma-card-header__sub">Fichier Excel (.xlsx) ou CSV — mise à jour ou création des médicaments</p>
+                        </div>
+                      </div>
+                      <div class="pharma-form-section">
+                        <p class="mb-3">Colonnes attendues : <code>nom</code>, <code>prix_achat</code>, <code>prix_vente</code>, <code>stock_actuel</code>, <code>stock_min</code>, <code>categorie</code>, <code>code_barre</code></p>
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                          <a href="api/index.php?r=import/template/medicaments" class="btn btn-pharma btn-pharma-outline" id="btn-template"><i class="ti-download"></i> Télécharger modèle CSV</a>
+                        </div>
+                        <form id="import-form">
+                          <div class="mb-3">
+                            <label class="form-label">Fichier à importer</label>
+                            <input type="file" name="fichier" id="import-file" class="form-control" accept=".xlsx,.xls,.csv" required />
+                          </div>
+                          <button type="submit" class="btn btn-pharma btn-pharma-primary" id="btn-import"><i class="ti-upload"></i> Lancer l'import</button>
+                        </form>
+                        <div id="import-result" class="mt-4" style="display:none;"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-lg-4 grid-margin stretch-card">
+                  <div class="pharma-side-panel">
+                    <div class="pharma-side-panel__icon"><i class="ti-info-alt"></i></div>
+                    <h6>Conseils import</h6>
+                    <ul>
+                      <li>Utilisez le modèle CSV pour Excel</li>
+                      <li>Séparateur point-virgule (;) pour CSV</li>
+                      <li>Même nom = mise à jour du produit</li>
+                      <li>Catégorie doit exister dans le système</li>
+                    </ul>
+                    <div id="import-logs" class="mt-3 small text-muted"></div>
                   </div>
                 </div>
               </div>

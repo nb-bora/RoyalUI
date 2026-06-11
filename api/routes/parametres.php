@@ -23,7 +23,8 @@ if ($method === 'PUT') {
     }
     $pdo->prepare(
         'UPDATE parametres SET nom_pharmacie=?, adresse=?, telephone=?, devise=?,
-         seuil_marge_min=?, seuil_peremption_jours=?, objectif_ca_jour=?, delai_fournisseur_jours=?, email_alerte=?
+         seuil_marge_min=?, seuil_peremption_jours=?, objectif_ca_jour=?, delai_fournisseur_jours=?, email_alerte=?,
+         nif=?, rccm=?, mention_legale_facture=?, taux_tva=?, prefixe_facture=?
          WHERE id=?'
     )->execute([
         trim($data['nom_pharmacie'] ?? 'PharmaRoyal'),
@@ -35,6 +36,11 @@ if ($method === 'PUT') {
         (float) ($data['objectif_ca_jour'] ?? 0),
         (int) ($data['delai_fournisseur_jours'] ?? 3),
         trim($data['email_alerte'] ?? '') ?: null,
+        trim($data['nif'] ?? '') ?: null,
+        trim($data['rccm'] ?? '') ?: null,
+        trim($data['mention_legale_facture'] ?? '') ?: null,
+        (float) ($data['taux_tva'] ?? 0),
+        trim($data['prefixe_facture'] ?? 'FA') ?: 'FA',
         $row['id'],
     ]);
 

@@ -135,7 +135,43 @@ CREATE TABLE IF NOT EXISTS `parametres` (
   `objectif_ca_jour` decimal(12,2) DEFAULT 0,
   `delai_fournisseur_jours` int(11) DEFAULT 3,
   `email_alerte` varchar(150) DEFAULT NULL,
+  `nif` varchar(50) DEFAULT NULL,
+  `rccm` varchar(50) DEFAULT NULL,
+  `mention_legale_facture` text DEFAULT NULL,
+  `taux_tva` decimal(5,2) DEFAULT 0,
+  `prefixe_facture` varchar(10) DEFAULT 'FA',
   PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `facture` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id_vente` int(11) NOT NULL,
+  `numero_facture` varchar(30) NOT NULL,
+  `date_facture` timestamp NOT NULL DEFAULT current_timestamp(),
+  `montant_ht` decimal(12,2) NOT NULL DEFAULT 0,
+  `montant_tva` decimal(12,2) NOT NULL DEFAULT 0,
+  `montant_ttc` decimal(12,2) NOT NULL DEFAULT 0,
+  `taux_tva` decimal(5,2) NOT NULL DEFAULT 0,
+  `mode_paiement` varchar(30) NOT NULL DEFAULT 'ESPECES',
+  `statut` enum('emise','annulee') NOT NULL DEFAULT 'emise',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `numero_facture` (`numero_facture`),
+  UNIQUE KEY `id_vente` (`id_vente`),
+  CONSTRAINT `fk_facture_vente` FOREIGN KEY (`id_vente`) REFERENCES `vente` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `import_log` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id_utilisateur` int(11) NOT NULL,
+  `type_import` varchar(50) NOT NULL,
+  `fichier` varchar(255) DEFAULT NULL,
+  `lignes_ok` int(11) DEFAULT 0,
+  `lignes_erreur` int(11) DEFAULT 0,
+  `details` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`details`)),
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_import_user` FOREIGN KEY (`id_utilisateur`) REFERENCES `utilisateur` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `audit_log` (

@@ -257,22 +257,30 @@
     if (!await PharmaSwal.confirmSale(formatMoney(total), cart.length)) return;
 
     try {
+      const modePaiement = document.getElementById('mode_paiement')?.value || 'ESPECES';
       const res = await PharmaAPI.post('ventes', {
         id_client: clientSelect.value || null,
+        mode_paiement: modePaiement,
         lignes: cart.map((c) => ({ id_medicament: c.id_medicament, quantite: c.quantite, prix_vente: c.prix_vente })),
       });
       const print = await Swal.fire({
-        customClass: { popup: 'pharma-swal-popup', confirmButton: 'pharma-swal-btn pharma-swal-btn--confirm', cancelButton: 'pharma-swal-btn pharma-swal-btn--cancel' },
+        customClass: { popup: 'pharma-swal-popup', confirmButton: 'pharma-swal-btn pharma-swal-btn--confirm', cancelButton: 'pharma-swal-btn pharma-swal-btn--cancel', denyButton: 'pharma-swal-btn pharma-swal-btn--outline' },
         buttonsStyling: false,
         icon: 'success',
         title: 'Vente enregistrée',
-        html: `Ticket #${res.id} — Total : <strong>${formatMoney(res.total)}</strong>`,
+        html: `Facture générée — Total : <strong>${formatMoney(res.total)}</strong>`,
+        showDenyButton: true,
         showCancelButton: true,
-        confirmButtonText: '<i class="ti-printer"></i> Imprimer ticket',
+        confirmButtonText: '<i class="ti-receipt"></i> Facture PDF',
+        denyButtonText: '<i class="ti-printer"></i> Ticket caisse',
         cancelButtonText: 'Continuer',
       });
-      if (print.isConfirmed) {
-        window.open(`api/index.php?r=tickets/${res.id}`, '_blank', 'width=400,height=600');
+      if (print.isConfirmed && res.facture_pdf_url) {
+        window.open(res.facture_pdf_url, '_blank');
+      } else if (print.isDenied) {
+        window.open(res.ticket_url || `api/index.php?r=tickets/${res.id}`, '_blank', 'width=400,height=600');
+      } else if (print.isConfirmed && res.facture_html_url) {
+        window.open(res.facture_html_url, '_blank');
       }
       cart.length = 0;
       clientSelect.value = '';

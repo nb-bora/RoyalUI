@@ -1,0 +1,12 @@
+{
+  "name": "pharmaroyal/api",
+  "description": "Dépendances PharmaRoyal — PDF et Excel",
+  "require": {
+    "php": ">=8.0",
+    "mpdf/mpdf": "^8.2",
+    "phpoffice/phpspreadsheet": "^1.29"
+  },
+  "config": {
+    "vendor-dir": "vendor"
+  }
+}

@@ -111,4 +111,48 @@
   setFormMode(form, false, 'un médicament');
   await loadCategories();
   await loadTable();
+
+  async function loadImportLogs() {
+    const el = document.getElementById('import-logs');
+    if (!el) return;
+    try {
+      const res = await PharmaAPI.get('import/logs');
+      if (!res.data.length) { el.innerHTML = '<em>Aucun import récent</em>'; return; }
+      el.innerHTML = '<strong>Derniers imports</strong><ul class="mt-2 ps-3">' +
+        res.data.slice(0, 5).map((l) =>
+          `<li>${formatDate(l.created_at)} — ${l.lignes_ok} OK, ${l.lignes_erreur} err.</li>`
+        ).join('') + '</ul>';
+    } catch { /* ignore */ }
+  }
+
+  document.getElementById('import-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fileInput = document.getElementById('import-file');
+    if (!fileInput?.files?.length) return;
+    const fd = new FormData();
+    fd.append('fichier', fileInput.files[0]);
+    const btn = document.getElementById('btn-import');
+    btn.disabled = true;
+    try {
+      const res = await PharmaAPI.upload('import/medicaments', fd);
+      const box = document.getElementById('import-result');
+      box.style.display = 'block';
+      let errHtml = '';
+      if (res.errors?.length) {
+        errHtml = '<ul class="text-danger small mt-2">' +
+          res.errors.map((er) => `<li>Ligne ${er.line} : ${er.message}</li>`).join('') + '</ul>';
+      }
+      box.innerHTML = `<div class="alert alert-success"><strong>${res.lignes_ok}</strong> ligne(s) importée(s), <strong>${res.lignes_erreur}</strong> erreur(s).</div>${errHtml}`;
+      PharmaSwal.toast('Import terminé');
+      fileInput.value = '';
+      await loadTable();
+      await loadImportLogs();
+    } catch (err) {
+      PharmaSwal.error('Import échoué', err.message);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  loadImportLogs();
 })();

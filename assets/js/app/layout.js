@@ -6,6 +6,7 @@ const PharmaLayout = (() => {
     { href: 'categories.html', icon: 'ti-tag', label: 'Catégories', roles: ['admin', 'gestionnaire'] },
     { href: 'stock.html', icon: 'ti-archive', label: 'Stock', roles: ['admin', 'gestionnaire'] },
     { href: 'ventes.html', icon: 'ti-shopping-cart', label: 'Ventes', roles: ['admin', 'gestionnaire', 'vendeur'] },
+    { href: 'factures.html', icon: 'ti-receipt', label: 'Factures', roles: ['admin', 'gestionnaire', 'vendeur'] },
     { href: 'achats.html', icon: 'ti-bag', label: 'Achats', roles: ['admin', 'gestionnaire'] },
     { href: 'fournisseurs.html', icon: 'ti-truck', label: 'Fournisseurs', roles: ['admin', 'gestionnaire'] },
     { href: 'clients.html', icon: 'ti-user', label: 'Clients', roles: ['admin', 'gestionnaire', 'vendeur'] },
