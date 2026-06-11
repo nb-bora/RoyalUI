@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <title>Achats - PharmaRoyal</title>
+  <link rel="stylesheet" href="assets/vendors/ti-icons/css/themify-icons.css" />
+  <link rel="stylesheet" href="assets/vendors/base/vendor.bundle.base.css" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/pharma.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+  <link rel="shortcut icon" href="assets/images/favicon.png" />
+</head>
+<body class="pharma-crud-page">
+  <div class="container-scroller">
+    <nav class="navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
+      <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
+        <a class="navbar-brand brand-logo me-5" href="home.html"><img src="assets/images/logo.svg" class="me-2" alt="logo" /></a>
+        <a class="navbar-brand brand-logo-mini" href="home.html"><img src="assets/images/logo-mini.svg" alt="logo" /></a>
+      </div>
+      <div class="navbar-menu-wrapper d-flex align-items-center justify-content-end">
+        <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-toggle="minimize"><span class="ti-view-list"></span></button>
+        <ul class="navbar-nav navbar-nav-right">
+          <li class="nav-item nav-profile dropdown">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><img src="assets/images/faces/face28.jpg" alt="profile" /></a>
+            <div class="dropdown-menu dropdown-menu-right navbar-dropdown">
+              <a class="dropdown-item" href="#" data-logout><i class="ti-power-off text-primary"></i> Déconnexion</a>
+            </div>
+          </li>
+        </ul>
+        <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button" data-toggle="offcanvas"><span class="ti-view-list"></span></button>
+      </div>
+    </nav>
+    <div class="container-fluid page-body-wrapper">
+      <nav class="sidebar sidebar-offcanvas" id="sidebar"><ul class="nav"></ul></nav>
+      <div class="main-panel">
+        <div class="content-wrapper">
+          <div class="pharma-page-header">
+            <div class="pharma-page-header__info">
+              <span class="pharma-breadcrumb">Approvisionnement</span>
+              <h4 class="pharma-page-title">Réception fournisseur</h4>
+              <p class="pharma-page-desc">Livraisons — stock et péremption mis à jour automatiquement.</p>
+            </div>
+            <div class="pharma-page-actions">
+              <a href="#reception" class="btn btn-pharma btn-pharma-primary tab-link" data-tab="reception"><i class="ti-plus"></i> Réception</a>
+              <a href="fournisseurs.html" class="btn btn-pharma btn-pharma-outline"><i class="ti-truck"></i> Fournisseurs</a>
+              <a href="stock.html#etat" class="btn btn-pharma btn-pharma-outline"><i class="ti-archive"></i> Stock</a>
+            </div>
+          </div>
+          <div class="row pharma-crud-kpis">
+            <div class="col-md-4 grid-margin stretch-card">
+              <div class="card pharma-kpi pharma-kpi--compact"><div class="card-body">
+                <p class="pharma-kpi__label">Réceptions</p><h3 class="pharma-kpi__value" id="kpi-achats-nb">—</h3>
+                <i class="ti-bag pharma-kpi__icon"></i>
+              </div></div>
+            </div>
+            <div class="col-md-4 grid-margin stretch-card">
+              <div class="card pharma-kpi pharma-kpi--compact pharma-kpi--success"><div class="card-body">
+                <p class="pharma-kpi__label">Montant total</p><h3 class="pharma-kpi__value text-primary" id="kpi-achats-total">—</h3>
+                <i class="ti-money pharma-kpi__icon"></i>
+              </div></div>
+            </div>
+            <div class="col-md-4 grid-margin stretch-card">
+              <div class="card pharma-kpi pharma-kpi--compact"><div class="card-body">
+                <p class="pharma-kpi__label">Lignes en cours</p><h3 class="pharma-kpi__value" id="kpi-achats-lignes">0</h3>
+                <i class="ti-list pharma-kpi__icon"></i>
+              </div></div>
+            </div>
+          </div>
+          <ul class="nav nav-tabs pharma-tabs" id="page-tabs" data-default-tab="reception">
+            <li class="nav-item"><a class="nav-link active tab-link" data-tab="reception" href="#reception"><i class="ti-bag"></i> Nouvelle réception</a></li>
+            <li class="nav-item"><a class="nav-link tab-link" data-tab="historique" href="#historique"><i class="ti-time"></i> Historique</a></li>
+          </ul>
+          <div class="tab-content">
+            <div class="tab-pane active show" id="reception">
+              <div class="row pharma-split-form">
+                <div class="col-lg-8 grid-margin stretch-card">
+                  <div class="card pharma-card"><div class="card-body pharma-form">
+                    <div class="pharma-card-header">
+                      <div class="pharma-card-header__icon"><i class="ti-bag"></i></div>
+                      <div><h6 class="pharma-card-header__title">Bon de réception</h6></div>
+                    </div>
+                    <form id="achat-form">
+                      <div class="pharma-form-section">
+                        <div class="pharma-form-section__title">Fournisseur</div>
+                        <select name="id_fournisseur" class="form-control" required></select>
+                        <a href="fournisseurs.html" class="small text-primary d-inline-block mt-1">Gérer les fournisseurs</a>
+                      </div>
+                      <div class="pharma-form-section">
+                        <div class="pharma-form-section__title">Ajouter une ligne</div>
+                        <div class="pharma-form-grid">
+                          <div class="span-2"><label>Médicament</label><select name="id_medicament" class="form-control"></select></div>
+                          <div><label>Quantité</label><input type="number" name="quantite" class="form-control" min="1" value="1" /></div>
+                          <div><label>Prix unitaire</label><input type="number" name="prix_achat" class="form-control" step="0.01" /></div>
+                          <div><label>Péremption</label><input type="date" name="date_peremption" class="form-control" /></div>
+                        </div>
+                        <button type="button" id="btn-add-ligne" class="btn btn-pharma btn-pharma-outline btn-sm mt-2"><i class="ti-plus"></i> Ajouter la ligne</button>
+                      </div>
+                      <div class="pharma-form-section">
+                        <div class="pharma-form-section__title">Lignes du bon</div>
+                        <div id="achat-lignes" class="pharma-lignes-panel"></div>
+                      </div>
+                      <div class="pharma-form-actions">
+                        <button type="submit" class="btn btn-pharma btn-pharma-primary flex-grow-1"><i class="ti-check"></i> Valider la réception</button>
+                      </div>
+                    </form>
+                  </div></div>
+                </div>
+                <div class="col-lg-4 grid-margin stretch-card">
+                  <div class="pharma-side-panel">
+                    <div class="pharma-side-panel__icon"><i class="ti-truck"></i></div>
+                    <h6>Réception intelligente</h6>
+                    <p>Chaque ligne incrémente le stock et enregistre la date de péremption du lot.</p>
+                    <ul><li>Prix pré-rempli depuis le catalogue</li><li>Historique dans l'onglet dédié</li><li>Lien direct vers le stock</li></ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="tab-pane fade" id="historique">
+              <div class="card pharma-card"><div class="card-body">
+                <div class="pharma-card-header">
+                  <div class="pharma-card-header__icon"><i class="ti-time"></i></div>
+                  <div><h6 class="pharma-card-header__title">Historique des réceptions</h6></div>
+                </div>
+                <table id="achats-table" class="table table-hover data-table pharma-table-compact">
+                  <thead><tr><th>Date</th><th>Fournisseur</th><th>Lignes</th><th>Total</th></tr></thead>
+                  <tbody></tbody>
+                </table>
+              </div></div>
+            </div>
+          </div>
+        </div>
+        <footer class="footer"><span class="text-muted d-block text-center">PharmaRoyal © <span id="current-year"></span></span></footer>
+      </div>
+    </div>
+  </div>
+  <script src="assets/vendors/base/vendor.bundle.base.js"></script>
+  <script src="assets/js/jquery.cookie.js"></script>
+  <script src="assets/js/off-canvas.js"></script>
+  <script src="assets/js/hoverable-collapse.js"></script>
+  <script src="assets/js/template.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="assets/js/app/api.js"></script>
+  <script src="assets/js/app/swal.js"></script>
+  <script src="assets/js/app/ui.js"></script>
+  <script src="assets/js/app/toast.js"></script>
+  <script src="assets/js/app/auth.js"></script>
+  <script src="assets/js/app/layout.js"></script>
+  <script src="assets/js/app/tabs.js"></script>
+  <script src="assets/js/app/pages/achats.js"></script>
+</body>
+</html>

@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <title>Caisse - PharmaRoyal</title>
+  <link rel="stylesheet" href="assets/vendors/ti-icons/css/themify-icons.css" />
+  <link rel="stylesheet" href="assets/vendors/base/vendor.bundle.base.css" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/pharma.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+  <link rel="shortcut icon" href="assets/images/favicon.png" />
+</head>
+<body class="pharma-pos-body">
+  <div class="container-scroller">
+    <nav class="navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
+      <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
+        <a class="navbar-brand brand-logo me-5" href="home.html"><img src="assets/images/logo.svg" class="me-2" alt="logo" /></a>
+        <a class="navbar-brand brand-logo-mini" href="home.html"><img src="assets/images/logo-mini.svg" alt="logo" /></a>
+      </div>
+      <div class="navbar-menu-wrapper d-flex align-items-center justify-content-end">
+        <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-toggle="minimize"><span class="ti-view-list"></span></button>
+        <ul class="navbar-nav navbar-nav-right">
+          <li class="nav-item nav-profile dropdown">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" id="profileDropdown"><img src="assets/images/faces/face28.jpg" alt="profile" /></a>
+            <div class="dropdown-menu dropdown-menu-right navbar-dropdown" aria-labelledby="profileDropdown">
+              <a class="dropdown-item" href="#" data-logout><i class="ti-power-off text-primary"></i> Déconnexion</a>
+            </div>
+          </li>
+        </ul>
+        <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button" data-toggle="offcanvas"><span class="ti-view-list"></span></button>
+      </div>
+    </nav>
+    <div class="container-fluid page-body-wrapper">
+      <nav class="sidebar sidebar-offcanvas" id="sidebar"><ul class="nav"></ul></nav>
+      <div class="main-panel">
+        <div class="content-wrapper">
+          <div class="pharma-page-header pharma-page-header--pos">
+            <div class="pharma-page-header__info">
+              <span class="pharma-breadcrumb">Point de vente</span>
+              <h4 class="pharma-page-title">Caisse</h4>
+              <p class="pharma-page-desc">Recherche rapide, panier intelligent et contrôle du stock en temps réel.</p>
+            </div>
+            <div class="pharma-page-actions">
+              <button type="button" class="btn btn-pharma btn-pharma-outline" id="pos-datetime" style="text-transform:capitalize"></button>
+              <a href="ventes.html" class="btn btn-pharma btn-pharma-outline"><i class="ti-time"></i> Historique</a>
+              <a href="clients.html" class="btn btn-pharma btn-pharma-outline"><i class="ti-user"></i> Clients</a>
+            </div>
+          </div>
+
+          <div class="row pharma-pos-kpis">
+            <div class="col-md-4 grid-margin stretch-card">
+              <div class="card pharma-kpi pharma-kpi--compact">
+                <div class="card-body">
+                  <p class="pharma-kpi__label">Produits disponibles</p>
+                  <h3 class="pharma-kpi__value" id="pos-kpi-dispo">—</h3>
+                  <i class="ti-package pharma-kpi__icon"></i>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4 grid-margin stretch-card">
+              <div class="card pharma-kpi pharma-kpi--compact pharma-kpi--success">
+                <div class="card-body">
+                  <p class="pharma-kpi__label">Articles au panier</p>
+                  <h3 class="pharma-kpi__value text-success" id="pos-kpi-items">0</h3>
+                  <i class="ti-shopping-cart pharma-kpi__icon"></i>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4 grid-margin stretch-card">
+              <div class="card pharma-kpi pharma-kpi--compact">
+                <div class="card-body">
+                  <p class="pharma-kpi__label">Total panier</p>
+                  <h3 class="pharma-kpi__value text-primary" id="pos-kpi-total">0 FCFA</h3>
+                  <i class="ti-money pharma-kpi__icon"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row pharma-pos-layout">
+            <!-- Catalogue produits -->
+            <div class="col-lg-8 grid-margin">
+              <div class="card pharma-card pharma-pos-catalog">
+                <div class="card-body">
+                  <div class="pharma-card-header">
+                    <div class="pharma-card-header__icon"><i class="ti-search"></i></div>
+                    <div class="flex-grow-1">
+                      <h6 class="pharma-card-header__title">Catalogue produits</h6>
+                      <p class="pharma-card-header__sub">Cliquez sur un produit ou utilisez la recherche</p>
+                    </div>
+                    <span class="pharma-pos-result-count" id="result-count"></span>
+                  </div>
+
+                  <div class="pharma-search-box pharma-search-box--pos mb-3">
+                    <i class="ti-search"></i>
+                    <input type="text" id="search-med" class="form-control form-control-lg" placeholder="Nom, code-barres…" autofocus autocomplete="off" />
+                    <button type="button" class="pharma-search-clear d-none" id="search-clear" aria-label="Effacer"><i class="ti-close"></i></button>
+                  </div>
+
+                  <div class="pharma-pos-filters mb-3" id="pos-filters">
+                    <button type="button" class="pharma-chip active" data-filter="all">Tous</button>
+                    <button type="button" class="pharma-chip pharma-chip--success" data-filter="dispo">Disponibles</button>
+                    <button type="button" class="pharma-chip pharma-chip--warning" data-filter="bas">Stock bas</button>
+                  </div>
+
+                  <div class="pharma-pos-grid-wrap">
+                    <div id="search-results" class="pharma-pos-grid"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Panier -->
+            <div class="col-lg-4 grid-margin">
+              <div class="pharma-pos-cart-wrap">
+                <div class="card pharma-card pharma-cart-panel">
+                  <div class="card-body d-flex flex-column">
+                    <div class="pharma-card-header">
+                      <div class="pharma-card-header__icon pharma-card-header__icon--cart"><i class="ti-shopping-cart-full"></i></div>
+                      <div class="flex-grow-1">
+                        <h6 class="pharma-card-header__title">Panier <span class="pharma-cart-badge" id="cart-badge">0</span></h6>
+                        <p class="pharma-card-header__sub">Vérifiez les quantités avant validation</p>
+                      </div>
+                    </div>
+
+                    <div class="pharma-pos-client">
+                      <label><i class="ti-user"></i> Client</label>
+                      <select id="id_client" class="form-control">
+                        <option value="">— Client passage —</option>
+                      </select>
+                      <a href="clients.html" class="pharma-pos-client__link">Gérer les clients</a>
+                    </div>
+
+                    <div id="cart-items" class="pharma-cart-items flex-grow-1"></div>
+
+                    <div class="pharma-cart-summary" id="cart-summary">
+                      <div class="pharma-cart-summary__row">
+                        <span>Lignes</span>
+                        <span id="summary-lines">0</span>
+                      </div>
+                      <div class="pharma-cart-summary__row">
+                        <span>Unités</span>
+                        <span id="summary-units">0</span>
+                      </div>
+                      <div class="pharma-cart-summary__total">
+                        <span>Total à payer</span>
+                        <span id="cart-total">0 FCFA</span>
+                      </div>
+                    </div>
+
+                    <div class="pharma-cart-actions">
+                      <button type="button" id="btn-valider" class="btn btn-pharma btn-pharma-success btn-lg flex-grow-1">
+                        <i class="ti-check-box"></i> Valider la vente
+                      </button>
+                      <button type="button" id="btn-clear" class="btn btn-pharma btn-pharma-outline" title="Vider le panier" disabled>
+                        <i class="ti-trash"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <footer class="footer">
+          <div class="d-sm-flex justify-content-center justify-content-sm-between">
+            <span class="text-muted text-center text-sm-left d-block d-sm-inline-block">Copyright © <span id="current-year"></span> PharmaRoyal</span>
+            <span class="float-none float-sm-right d-block mt-1 mt-sm-0 text-center"><kbd class="pharma-kbd">F2</kbd> Recherche · <kbd class="pharma-kbd">Échap</kbd> Effacer</span>
+          </div>
+        </footer>
+      </div>
+    </div>
+  </div>
+  <script src="assets/vendors/base/vendor.bundle.base.js"></script>
+  <script src="assets/js/jquery.cookie.js" type="text/javascript"></script>
+  <script src="assets/js/off-canvas.js"></script>
+  <script src="assets/js/hoverable-collapse.js"></script>
+  <script src="assets/js/template.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="assets/js/app/api.js"></script>
+  <script src="assets/js/app/swal.js"></script>
+  <script src="assets/js/app/ui.js"></script>
+  <script src="assets/js/app/toast.js"></script>
+  <script src="assets/js/app/auth.js"></script>
+  <script src="assets/js/app/layout.js"></script>
+  <script src="assets/js/app/pages/caisse.js"></script>
+</body>
+</html>

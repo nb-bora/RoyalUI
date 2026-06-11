@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <title>Clients - PharmaRoyal</title>
+  <link rel="stylesheet" href="assets/vendors/ti-icons/css/themify-icons.css" />
+  <link rel="stylesheet" href="assets/vendors/base/vendor.bundle.base.css" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/pharma.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+  <link rel="shortcut icon" href="assets/images/favicon.png" />
+</head>
+<body class="pharma-crud-page">
+  <div class="container-scroller">
+    <nav class="navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
+      <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
+        <a class="navbar-brand brand-logo me-5" href="home.html"><img src="assets/images/logo.svg" class="me-2" alt="logo" /></a>
+        <a class="navbar-brand brand-logo-mini" href="home.html"><img src="assets/images/logo-mini.svg" alt="logo" /></a>
+      </div>
+      <div class="navbar-menu-wrapper d-flex align-items-center justify-content-end">
+        <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-toggle="minimize"><span class="ti-view-list"></span></button>
+        <ul class="navbar-nav navbar-nav-right">
+          <li class="nav-item nav-profile dropdown">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><img src="assets/images/faces/face28.jpg" alt="profile" /></a>
+            <div class="dropdown-menu dropdown-menu-right navbar-dropdown">
+              <a class="dropdown-item" href="#" data-logout><i class="ti-power-off text-primary"></i> Déconnexion</a>
+            </div>
+          </li>
+        </ul>
+        <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button" data-toggle="offcanvas"><span class="ti-view-list"></span></button>
+      </div>
+    </nav>
+    <div class="container-fluid page-body-wrapper">
+      <nav class="sidebar sidebar-offcanvas" id="sidebar"><ul class="nav"></ul></nav>
+      <div class="main-panel">
+        <div class="content-wrapper">
+          <div class="pharma-page-header">
+            <div class="pharma-page-header__info">
+              <span class="pharma-breadcrumb">Relation client</span>
+              <h4 class="pharma-page-title">Clients</h4>
+              <p class="pharma-page-desc">Sélectionnables à la caisse lors d'une vente.</p>
+            </div>
+            <div class="pharma-page-actions">
+              <a href="#form" class="btn btn-pharma btn-pharma-primary tab-link" data-tab="form"><i class="ti-plus"></i> Nouveau</a>
+              <a href="caisse.html" class="btn btn-pharma btn-pharma-outline"><i class="ti-shopping-cart-full"></i> Caisse</a>
+              <a href="ventes.html" class="btn btn-pharma btn-pharma-outline"><i class="ti-time"></i> Ventes</a>
+            </div>
+          </div>
+          <div class="row pharma-crud-kpis">
+            <div class="col-md-12 grid-margin stretch-card">
+              <div class="card pharma-kpi pharma-kpi--compact"><div class="card-body">
+                <p class="pharma-kpi__label">Clients enregistrés</p><h3 class="pharma-kpi__value" id="kpi-clients-total">—</h3>
+                <i class="ti-user pharma-kpi__icon"></i>
+              </div></div>
+            </div>
+          </div>
+          <ul class="nav nav-tabs pharma-tabs" id="page-tabs" data-default-tab="liste">
+            <li class="nav-item"><a class="nav-link tab-link" data-tab="form" href="#form"><i class="ti-pencil"></i> Formulaire</a></li>
+            <li class="nav-item"><a class="nav-link active tab-link" data-tab="liste" href="#liste"><i class="ti-view-list"></i> Liste</a></li>
+          </ul>
+          <div class="tab-content">
+            <div class="tab-pane fade" id="form">
+              <div class="row pharma-split-form">
+                <div class="col-lg-9 grid-margin stretch-card">
+                  <div class="card pharma-card"><div class="card-body pharma-form">
+                    <div class="pharma-card-header">
+                      <div class="pharma-card-header__icon"><i class="ti-user"></i></div>
+                      <div><h6 class="pharma-card-header__title">Fiche client</h6></div>
+                    </div>
+                    <form id="client-form">
+                      <div class="form-group"><label>Nom complet</label><input type="text" name="nom" class="form-control" required /></div>
+                      <div class="form-group"><label>Téléphone</label><input type="text" name="telephone" class="form-control" placeholder="06 12 34 56 78" /></div>
+                      <div class="pharma-form-actions"><button type="submit" class="btn btn-pharma btn-pharma-primary btn-block"><i class="ti-check"></i> Enregistrer</button></div>
+                    </form>
+                  </div></div>
+                </div>
+                <div class="col-lg-3 grid-margin stretch-card">
+                  <div class="pharma-side-panel">
+                    <div class="pharma-side-panel__icon"><i class="ti-shopping-cart-full"></i></div>
+                    <h6>Utilisation en caisse</h6>
+                    <p>Associez un client à une vente pour retrouver son nom dans l'historique des transactions.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="tab-pane active show" id="liste">
+              <div class="card pharma-card"><div class="card-body">
+                <div class="pharma-card-header">
+                  <div class="pharma-card-header__icon"><i class="ti-view-list"></i></div>
+                  <div><h6 class="pharma-card-header__title">Liste des clients</h6></div>
+                </div>
+                <table id="client-table" class="table table-hover data-table pharma-table-compact">
+                  <thead><tr><th>Client</th><th>Téléphone</th><th></th></tr></thead>
+                  <tbody></tbody>
+                </table>
+              </div></div>
+            </div>
+          </div>
+        </div>
+        <footer class="footer"><span class="text-muted d-block text-center">PharmaRoyal © <span id="current-year"></span></span></footer>
+      </div>
+    </div>
+  </div>
+  <script src="assets/vendors/base/vendor.bundle.base.js"></script>
+  <script src="assets/js/jquery.cookie.js"></script>
+  <script src="assets/js/off-canvas.js"></script>
+  <script src="assets/js/hoverable-collapse.js"></script>
+  <script src="assets/js/template.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="assets/js/app/api.js"></script>
+  <script src="assets/js/app/swal.js"></script>
+  <script src="assets/js/app/ui.js"></script>
+  <script src="assets/js/app/toast.js"></script>
+  <script src="assets/js/app/auth.js"></script>
+  <script src="assets/js/app/layout.js"></script>
+  <script src="assets/js/app/tabs.js"></script>
+  <script src="assets/js/app/pages/clients.js"></script>
+</body>
+</html>

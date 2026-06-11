@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Stock - PharmaRoyal</title>
+    <link rel="stylesheet" href="assets/vendors/ti-icons/css/themify-icons.css" />
+    <link rel="stylesheet" href="assets/vendors/base/vendor.bundle.base.css" />
+    <link rel="stylesheet" href="assets/css/style.css" />
+    <link rel="stylesheet" href="assets/css/pharma.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+    <link rel="shortcut icon" href="assets/images/favicon.png" />
+  </head>
+  <body class="pharma-crud-page">
+    <div class="container-scroller">
+      <nav class="navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
+        <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
+          <a class="navbar-brand brand-logo me-5" href="home.html"><img src="assets/images/logo.svg" class="me-2" alt="logo" /></a>
+          <a class="navbar-brand brand-logo-mini" href="home.html"><img src="assets/images/logo-mini.svg" alt="logo" /></a>
+        </div>
+        <div class="navbar-menu-wrapper d-flex align-items-center justify-content-end">
+          <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-toggle="minimize"><span class="ti-view-list"></span></button>
+          <ul class="navbar-nav navbar-nav-right">
+            <li class="nav-item nav-profile dropdown">
+              <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" id="profileDropdown"><img src="assets/images/faces/face28.jpg" alt="profile" /></a>
+              <div class="dropdown-menu dropdown-menu-right navbar-dropdown" aria-labelledby="profileDropdown">
+                <a class="dropdown-item" href="#" data-logout><i class="ti-power-off text-primary"></i> Déconnexion</a>
+              </div>
+            </li>
+          </ul>
+          <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button" data-toggle="offcanvas"><span class="ti-view-list"></span></button>
+        </div>
+      </nav>
+      <div class="container-fluid page-body-wrapper">
+        <nav class="sidebar sidebar-offcanvas" id="sidebar"><ul class="nav"></ul></nav>
+        <div class="main-panel">
+          <div class="content-wrapper">
+            <div class="pharma-page-header">
+              <div class="pharma-page-header__info">
+                <span class="pharma-breadcrumb">Inventaire</span>
+                <h4 class="pharma-page-title">Stock &amp; mouvements</h4>
+                <p class="pharma-page-desc">Suivi en temps réel, alertes et ajustements manuels.</p>
+              </div>
+              <div class="pharma-page-actions">
+                <a href="#etat" class="btn btn-pharma btn-pharma-outline tab-link" data-tab="etat"><i class="ti-view-list"></i> Vue d'ensemble</a>
+                <a href="#mouvement" class="btn btn-pharma btn-pharma-primary tab-link" data-tab="mouvement"><i class="ti-exchange-vertical"></i> Ajustement</a>
+                <a href="achats.html#reception" class="btn btn-pharma btn-pharma-success"><i class="ti-bag"></i> Réception</a>
+                <a href="medicaments.html#liste" class="btn btn-pharma btn-pharma-outline"><i class="ti-package"></i> Catalogue</a>
+              </div>
+            </div>
+
+            <ul class="nav nav-tabs pharma-tabs" id="page-tabs" data-default-tab="etat">
+              <li class="nav-item">
+                <a class="nav-link active tab-link" data-tab="etat" href="#etat"><i class="ti-archive"></i> Vue d'ensemble</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link tab-link" data-tab="mouvement" href="#mouvement"><i class="ti-exchange-vertical"></i> Ajustement manuel</a>
+              </li>
+            </ul>
+
+            <div class="tab-content">
+              <!-- ── Vue d'ensemble ── -->
+              <div class="tab-pane active show" id="etat">
+                <div class="row" id="stock-kpis">
+                  <div class="col-md-3 grid-margin stretch-card">
+                    <div class="card pharma-kpi pharma-kpi--clickable" data-filter="all" title="Afficher tout">
+                      <div class="card-body">
+                        <p class="pharma-kpi__label">Références actives</p>
+                        <h3 class="pharma-kpi__value" id="kpi-total">—</h3>
+                        <i class="ti-package pharma-kpi__icon"></i>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-3 grid-margin stretch-card">
+                    <div class="card pharma-kpi pharma-kpi--success pharma-kpi--clickable" data-filter="ok" title="Filtrer : stock OK">
+                      <div class="card-body">
+                        <p class="pharma-kpi__label">Stock OK</p>
+                        <h3 class="pharma-kpi__value text-success" id="kpi-ok">—</h3>
+                        <i class="ti-check-box pharma-kpi__icon"></i>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-3 grid-margin stretch-card">
+                    <div class="card pharma-kpi pharma-kpi--warning pharma-kpi--clickable" data-filter="bas" title="Filtrer : stock bas">
+                      <div class="card-body">
+                        <p class="pharma-kpi__label">Stock bas</p>
+                        <h3 class="pharma-kpi__value text-warning" id="kpi-bas">—</h3>
+                        <i class="ti-alert pharma-kpi__icon"></i>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-3 grid-margin stretch-card">
+                    <div class="card pharma-kpi pharma-kpi--danger pharma-kpi--clickable" data-filter="rupture" title="Filtrer : ruptures">
+                      <div class="card-body">
+                        <p class="pharma-kpi__label">Ruptures</p>
+                        <h3 class="pharma-kpi__value text-danger" id="kpi-rupture">—</h3>
+                        <i class="ti-na pharma-kpi__icon"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="pharma-stock-toolbar">
+                  <div class="pharma-filter-chips" id="stock-filters">
+                    <button type="button" class="pharma-chip active" data-filter="all">Tous</button>
+                    <button type="button" class="pharma-chip pharma-chip--success" data-filter="dispo">Disponibles</button>
+                    <button type="button" class="pharma-chip" data-filter="ok">Stock OK</button>
+                    <button type="button" class="pharma-chip pharma-chip--warning" data-filter="bas">Stock bas</button>
+                    <button type="button" class="pharma-chip pharma-chip--danger" data-filter="rupture">Rupture</button>
+                  </div>
+                  <span class="pharma-pos-result-count" id="stock-filter-count">—</span>
+                </div>
+
+                <div class="row">
+                  <div class="col-lg-8 grid-margin stretch-card">
+                    <div class="card pharma-card pharma-stock-table-card">
+                      <div class="card-body">
+                        <div class="pharma-card-header">
+                          <div class="pharma-card-header__icon"><i class="ti-package"></i></div>
+                          <div class="flex-grow-1">
+                            <h6 class="pharma-card-header__title">Niveaux de stock</h6>
+                            <p class="pharma-card-header__sub">Barre de remplissage par rapport au seuil minimum</p>
+                          </div>
+                        </div>
+                        <div class="table-responsive">
+                          <table id="stock-table" class="table table-hover pharma-stock-table pharma-table-compact">
+                            <thead>
+                              <tr>
+                                <th>Médicament</th>
+                                <th>Catégorie</th>
+                                <th style="min-width:140px">Niveau</th>
+                                <th>Qté</th>
+                                <th>Statut</th>
+                              </tr>
+                            </thead>
+                            <tbody></tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-lg-4 grid-margin stretch-card">
+                    <div class="card pharma-card pharma-mov-feed">
+                      <div class="card-body">
+                        <div class="pharma-card-header">
+                          <div class="pharma-card-header__icon pharma-card-header__icon--info"><i class="ti-pulse"></i></div>
+                          <div class="flex-grow-1">
+                            <h6 class="pharma-card-header__title">Activité récente</h6>
+                            <p class="pharma-card-header__sub">Derniers mouvements</p>
+                          </div>
+                        </div>
+                        <div id="mov-feed" class="pharma-mov-feed">
+                          <p class="text-muted small text-center py-4">Chargement...</p>
+                        </div>
+                        <a href="#mouvement" class="btn btn-pharma btn-pharma-outline btn-block tab-link mt-3" data-tab="mouvement">
+                          <i class="ti-plus"></i> Nouvel ajustement
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ── Ajustement manuel ── -->
+              <div class="tab-pane fade" id="mouvement">
+                <div class="row">
+                  <div class="col-lg-5 grid-margin stretch-card">
+                    <div class="card pharma-card">
+                      <div class="card-body pharma-form">
+                        <div class="pharma-card-header">
+                          <div class="pharma-card-header__icon"><i class="ti-exchange-vertical"></i></div>
+                          <div>
+                            <h6 class="pharma-card-header__title">Ajustement manuel</h6>
+                            <p class="pharma-card-header__sub">Hors vente ou réception fournisseur</p>
+                          </div>
+                        </div>
+                        <form id="stock-form">
+                          <div class="form-group">
+                            <label>Médicament</label>
+                            <select name="id_medicament" class="form-control" required></select>
+                          </div>
+                          <div class="form-group">
+                            <label>Type de mouvement</label>
+                            <div class="pharma-type-toggle" role="group">
+                              <button type="button" class="pharma-type-toggle__btn active" data-type="ENTREE">
+                                <i class="ti-arrow-down"></i> Entrée
+                              </button>
+                              <button type="button" class="pharma-type-toggle__btn" data-type="SORTIE">
+                                <i class="ti-arrow-up"></i> Sortie
+                              </button>
+                            </div>
+                            <input type="hidden" name="type_mouvement" value="ENTREE" />
+                          </div>
+                          <div class="form-group">
+                            <label>Quantité</label>
+                            <div class="pharma-qty-stepper">
+                              <button type="button" class="pharma-qty-stepper__btn" data-step="-1" aria-label="Diminuer">−</button>
+                              <input type="number" name="quantite" class="form-control text-center" min="1" value="1" required />
+                              <button type="button" class="pharma-qty-stepper__btn" data-step="1" aria-label="Augmenter">+</button>
+                            </div>
+                          </div>
+                          <div class="pharma-form-actions">
+                            <button type="submit" class="btn btn-pharma btn-pharma-primary flex-grow-1"><i class="ti-check"></i> Enregistrer</button>
+                            <a href="achats.html#reception" class="btn btn-pharma btn-pharma-outline"><i class="ti-bag"></i></a>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-lg-7 grid-margin stretch-card">
+                    <div class="card pharma-card pharma-stock-preview" id="stock-preview">
+                      <div class="card-body">
+                        <div class="pharma-stock-preview__empty" id="preview-empty">
+                          <i class="ti-package"></i>
+                          <p>Sélectionnez un médicament pour voir son niveau de stock</p>
+                        </div>
+                        <div class="pharma-stock-preview__content d-none" id="preview-content">
+                          <div class="pharma-stock-preview__header">
+                            <div>
+                              <span class="pharma-stock-preview__cat" id="preview-cat"></span>
+                              <h5 class="pharma-stock-preview__name" id="preview-name"></h5>
+                            </div>
+                            <div id="preview-badge"></div>
+                          </div>
+                          <div class="pharma-stock-gauge">
+                            <div class="pharma-stock-gauge__track">
+                              <div class="pharma-stock-gauge__fill" id="preview-gauge"></div>
+                            </div>
+                            <div class="pharma-stock-gauge__labels">
+                              <span>0</span>
+                              <span>Seuil min. : <strong id="preview-min">0</strong></span>
+                              <span id="preview-max-label"></span>
+                            </div>
+                          </div>
+                          <div class="row pharma-stock-preview__stats">
+                            <div class="col-4">
+                              <div class="pharma-stat-pill">
+                                <span class="pharma-stat-pill__label">Actuel</span>
+                                <span class="pharma-stat-pill__value" id="preview-qty">0</span>
+                              </div>
+                            </div>
+                            <div class="col-4">
+                              <div class="pharma-stat-pill">
+                                <span class="pharma-stat-pill__label">Après</span>
+                                <span class="pharma-stat-pill__value pharma-stat-pill__value--highlight" id="preview-after">0</span>
+                              </div>
+                            </div>
+                            <div class="col-4">
+                              <div class="pharma-stat-pill">
+                                <span class="pharma-stat-pill__label">Variation</span>
+                                <span class="pharma-stat-pill__value" id="preview-delta">—</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="pharma-stock-preview__tip" id="preview-tip"></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="card pharma-card mt-0">
+                      <div class="card-body py-3">
+                        <div class="pharma-card-header mb-0 pb-0 border-0">
+                          <div class="pharma-card-header__icon pharma-card-header__icon--muted"><i class="ti-time"></i></div>
+                          <div class="flex-grow-1">
+                            <h6 class="pharma-card-header__title mb-0">Historique complet</h6>
+                          </div>
+                        </div>
+                        <div class="table-responsive mt-3">
+                          <table id="mouv-table" class="table table-sm table-hover data-table pharma-table-compact">
+                            <thead><tr><th>Date</th><th>Produit</th><th>Type</th><th>Qté</th></tr></thead>
+                            <tbody></tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <footer class="footer">
+            <div class="d-sm-flex justify-content-center justify-content-sm-between">
+              <span class="text-muted text-center text-sm-left d-block d-sm-inline-block">Copyright © <span id="current-year"></span> PharmaRoyal</span>
+              <span class="float-none float-sm-right d-block mt-1 mt-sm-0 text-center">Gestion de pharmacie</span>
+            </div>
+          </footer>
+        </div>
+      </div>
+    </div>
+    <script src="assets/vendors/base/vendor.bundle.base.js"></script>
+    <script src="assets/js/jquery.cookie.js" type="text/javascript"></script>
+    <script src="assets/js/off-canvas.js"></script>
+    <script src="assets/js/hoverable-collapse.js"></script>
+    <script src="assets/js/template.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="assets/js/app/api.js"></script>
+    <script src="assets/js/app/swal.js"></script>
+    <script src="assets/js/app/ui.js"></script>
+    <script src="assets/js/app/toast.js"></script>
+    <script src="assets/js/app/auth.js"></script>
+    <script src="assets/js/app/layout.js"></script>
+    <script src="assets/js/app/tabs.js"></script>
+    <script src="assets/js/app/pages/stock.js"></script>
+  </body>
+</html>

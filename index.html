@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>RoyalUI Admin</title>
+  <link rel="stylesheet" href="assets/vendors/ti-icons/css/themify-icons.css">
+  <link rel="stylesheet" href="assets/vendors/base/vendor.bundle.base.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/pharma.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+  <link rel="shortcut icon" href="assets/images/favicon.png" />
+  <style>
+    .form-control-with-icon {
+      padding-left: 45px;
+    }
+    .input-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #999;
+      pointer-events: none;
+      font-size: 18px;
+    }
+    .input-group-wrapper {
+      position: relative;
+    }
+    .password-input-group {
+      position: relative;
+    }
+    .password-input-group input {
+      padding-right: 45px;
+    }
+    .password-toggle {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #999;
+      cursor: pointer;
+      font-size: 18px;
+      padding: 0;
+    }
+    .password-toggle:hover {
+      color: #555;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container-scroller">
+    <div class="container-fluid page-body-wrapper full-page-wrapper">
+      <div class="content-wrapper d-flex align-items-center auth px-0">
+        <div class="row w-100 mx-0">
+          <div class="col-lg-4 mx-auto">
+            <div class="auth-form-light pharma-auth text-left py-5 px-4 px-sm-5">
+              <div class="brand-logo">
+                <img src="assets/images/logo.svg" alt="logo">
+              </div>
+              <h4 class="font-weight-bold">PharmaRoyal</h4>
+              <h6 class="font-weight-light text-muted">Système intelligent de gestion de pharmacie</h6>
+              <form class="pt-3" id="login-form">
+                <div id="login-error" class="alert alert-danger d-none"></div>
+                <div class="form-group">
+                  <div class="input-group-wrapper">
+                    <i class="ti-user input-icon"></i>
+                    <input type="email" class="form-control form-control-lg form-control-with-icon" id="login-email" placeholder="Email" value="admin@pharma.local" required>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <div class="password-input-group">
+                    <i class="ti-lock input-icon"></i>
+                    <input type="password" class="form-control form-control-lg form-control-with-icon" id="login-password" placeholder="Mot de passe" value="admin123" required>
+                    <button class="password-toggle" type="button" id="togglePassword" data-visible="false">
+                      <i class="ti-eye"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="mt-3">
+                  <button type="submit" class="btn btn-block col-md-12 btn-pharma btn-pharma-primary btn-lg auth-form-btn">SE CONNECTER <i class="ti-arrow-right"></i></button>
+                </div>
+                <p class="text-muted small mt-3 text-center">Démo : admin@pharma.local / admin123</p>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/vendors/base/vendor.bundle.base.js"></script>
+  <script src="assets/js/off-canvas.js"></script>
+  <script src="assets/js/hoverable-collapse.js"></script>
+  <script src="assets/js/template.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="assets/js/app/api.js"></script>
+  <script src="assets/js/app/toast.js"></script>
+  <script src="assets/js/app/auth.js"></script>
+  <script>
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errEl = document.getElementById('login-error');
+      errEl.classList.add('d-none');
+      try {
+        await PharmaAuth.login(
+          document.getElementById('login-email').value,
+          document.getElementById('login-password').value
+        );
+        window.location.href = 'home.html';
+      } catch (err) {
+        showToast(err.message || 'Identifiants incorrects', 'error');
+      }
+    });
+
+    document.getElementById('togglePassword').addEventListener('click', function(e) {
+      e.preventDefault();
+      const passwordInput = document.getElementById('login-password');
+      const isVisible = this.getAttribute('data-visible') === 'true';
+      
+      if (isVisible) {
+        passwordInput.type = 'password';
+        this.setAttribute('data-visible', 'false');
+        this.textContent = '';
+        this.innerHTML = '<i class="ti-eye"></i>';
+      } else {
+        passwordInput.type = 'text';
+        this.setAttribute('data-visible', 'true');
+        this.textContent = '';
+        this.innerHTML = '<i class="ti-eye"></i>';
+      }
+    });
+  </script>
+</body>
+
+</html>
