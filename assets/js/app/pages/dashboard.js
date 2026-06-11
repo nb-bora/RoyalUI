@@ -2,66 +2,100 @@
   const user = await PharmaLayout.init();
   if (!user) return;
 
-  const kpiEls = {
-    ca_jour: document.getElementById('kpi-ca'),
-    ventes_jour: document.getElementById('kpi-ventes'),
-    stock_bas: document.getElementById('kpi-stock-bas'),
-    peremption_30j: document.getElementById('kpi-peremption'),
-  };
+  const role = user.role;
+  const headerDesc = document.querySelector('.pharma-page-desc');
+  const headerActions = document.querySelector('.pharma-page-actions');
+  const briefingEl = document.getElementById('briefing-panel');
+  const recoEl = document.getElementById('recommandations-list');
+  const adminOnly = document.querySelectorAll('.dash-admin-only');
+  const gestionOnly = document.querySelectorAll('.dash-gestion-only');
+  const vendeurOnly = document.querySelectorAll('.dash-vendeur-only');
+
+  adminOnly.forEach((el) => { el.style.display = role === 'admin' ? '' : 'none'; });
+  gestionOnly.forEach((el) => { el.style.display = ['admin', 'gestionnaire'].includes(role) ? '' : 'none'; });
+  vendeurOnly.forEach((el) => { el.style.display = role === 'vendeur' ? '' : 'none'; });
+
+  if (role === 'vendeur' && headerActions) {
+    headerActions.innerHTML = `
+      <a href="caisse.html" class="btn btn-pharma btn-pharma-primary"><i class="ti-shopping-cart-full"></i> Caisse</a>
+      <a href="ventes.html" class="btn btn-pharma btn-pharma-outline"><i class="ti-time"></i> Mes ventes</a>`;
+    if (headerDesc) headerDesc.textContent = 'Votre activité du jour et accès rapide à la caisse.';
+  } else if (role === 'gestionnaire' && headerActions) {
+    headerActions.innerHTML = `
+      <a href="stock.html#etat" class="btn btn-pharma btn-pharma-outline"><i class="ti-archive"></i> Stock</a>
+      <a href="achats.html#reception" class="btn btn-pharma btn-pharma-primary"><i class="ti-bag"></i> Réception</a>
+      <a href="home.html#recommandations" class="btn btn-pharma btn-pharma-success"><i class="ti-light-bulb"></i> Recommandations</a>`;
+  }
 
   try {
-    const [dash, alertes] = await Promise.all([
+    const [dash, briefing, recos] = await Promise.all([
       PharmaAPI.get('dashboard'),
-      PharmaAPI.get('alertes'),
+      PharmaAPI.get('briefing'),
+      ['admin', 'gestionnaire'].includes(role)
+        ? PharmaAPI.get('recommandations?statut=nouvelle').catch(() => ({ data: [] }))
+        : Promise.resolve({ data: [] }),
     ]);
 
-    const k = dash.kpis;
-    if (kpiEls.ca_jour) kpiEls.ca_jour.textContent = formatMoney(k.ca_jour);
-    if (kpiEls.ventes_jour) kpiEls.ventes_jour.textContent = k.ventes_jour;
-    if (kpiEls.stock_bas) kpiEls.stock_bas.textContent = k.stock_bas + k.ruptures;
-    if (kpiEls.peremption_30j) kpiEls.peremption_30j.textContent = k.peremption_30j;
+    const b = briefing.data;
+    if (briefingEl && b) {
+      let html = `<div class="pharma-briefing"><h5>${b.salutation}</h5>`;
+      b.sections?.forEach((s) => {
+        if (s.type === 'favoris' && s.produits?.length) {
+          html += `<p class="mb-1"><strong>Favoris caisse :</strong> ${s.produits.map((p) => p.nom).join(', ')}</p>`;
+        } else if (s.text) {
+          html += `<p class="text-muted mb-2">${s.text}</p>`;
+        }
+      });
+      if (b.actions?.length) {
+        html += '<div class="d-flex flex-wrap gap-2 mt-2">';
+        b.actions.forEach((a) => {
+          html += `<a href="${a.href}" class="btn btn-pharma ${a.primary ? 'btn-pharma-primary' : 'btn-pharma-outline'} btn-sm">${a.label}</a>`;
+        });
+        html += '</div>';
+      }
+      html += '</div>';
+      briefingEl.innerHTML = html;
+    }
 
-    renderAlerts(alertes);
+    const k = dash.kpis;
+    document.getElementById('kpi-ca').textContent = formatMoney(k.ca_jour);
+    document.getElementById('kpi-ventes').textContent = k.ventes_jour;
+    document.getElementById('kpi-stock-bas').textContent = k.stock_bas + k.ruptures;
+    document.getElementById('kpi-peremption').textContent = k.peremption_30j;
+
+    if (recoEl && recos.data?.length) {
+      recoEl.innerHTML = recos.data.map((r) => `
+        <div class="pharma-alert-item pharma-alert-item--info">
+          <i class="ti-light-bulb text-primary"></i>
+          <div class="flex-grow-1"><strong>${r.titre}</strong><br><small>${r.message}</small></div>
+          <button type="button" class="btn btn-pharma btn-pharma-primary btn-sm" data-reco="${r.id}">Appliquer</button>
+          <button type="button" class="btn btn-pharma btn-pharma-outline btn-sm" data-ignore="${r.id}">Ignorer</button>
+        </div>`).join('');
+      recoEl.querySelectorAll('[data-reco]').forEach((btn) => btn.addEventListener('click', async () => {
+        await PharmaAPI.put(`recommandations/${btn.dataset.reco}`, { statut: 'appliquee', creer_bc: true });
+        PharmaSwal.toast('Bon de commande créé');
+        location.reload();
+      }));
+      recoEl.querySelectorAll('[data-ignore]').forEach((btn) => btn.addEventListener('click', async () => {
+        await PharmaAPI.put(`recommandations/${btn.dataset.ignore}`, { statut: 'ignoree' });
+        btn.closest('.pharma-alert-item')?.remove();
+      }));
+    } else if (recoEl) {
+      recoEl.innerHTML = pharmaEmpty('Aucune recommandation en attente', 'ti-check-box');
+    }
+
     renderChart(dash.ventes_7j);
     renderTop(dash.top_produits);
   } catch (e) {
     PharmaSwal.error('Erreur', e.message);
   }
 
-  function renderAlerts(data) {
-    const el = document.getElementById('alertes-list');
-    if (!el) return;
-    const items = [];
-
-    data.stock_bas.forEach((m) => {
-      items.push(`<div class="pharma-alert-item pharma-alert-item--warning">
-        <i class="ti-alert text-warning"></i>
-        <div class="flex-grow-1"><strong>${m.nom}</strong> — stock : ${m.stock_actuel} (min : ${m.stock_min})</div>
-        <a href="medicaments.html#liste" class="btn btn-pharma btn-pharma-outline btn-sm">Gérer</a>
-      </div>`);
-    });
-    data.peremption.forEach((p) => {
-      items.push(`<div class="pharma-alert-item pharma-alert-item--danger">
-        <i class="ti-timer text-danger"></i>
-        <div class="flex-grow-1"><strong>${p.nom}</strong> — péremption dans <strong>${p.jours_restants} j</strong> (${formatDate(p.date_peremption)})</div>
-        <a href="stock.html#etat" class="btn btn-pharma btn-pharma-outline btn-sm">Stock</a>
-      </div>`);
-    });
-    data.reappro.forEach((r) => {
-      items.push(`<div class="pharma-alert-item pharma-alert-item--info">
-        <i class="ti-shopping-cart text-primary"></i>
-        <div class="flex-grow-1"><strong>${r.nom}</strong> — ${r.message} <small class="text-muted">(${r.ventes_30j} ventes/30j)</small></div>
-        <a href="achats.html#reception" class="btn btn-pharma btn-pharma-primary btn-sm">Commander</a>
-      </div>`);
-    });
-
-    el.innerHTML = items.length ? items.join('') : pharmaEmpty('Aucune alerte — tout est en ordre', 'ti-check-box');
-  }
-
   function renderChart(rows) {
     const canvas = document.getElementById('salesChart');
-    if (!canvas || typeof Chart === 'undefined') return;
-
+    if (!canvas || typeof Chart === 'undefined' || role === 'vendeur') {
+      canvas?.closest('.grid-margin')?.classList.add('d-none');
+      return;
+    }
     const labels = [];
     const values = [];
     for (let i = 6; i >= 0; i--) {
@@ -72,7 +106,6 @@
       const found = rows.find((r) => r.jour === key);
       values.push(found ? parseFloat(found.total) : 0);
     }
-
     new Chart(canvas, {
       type: 'line',
       data: {
@@ -84,19 +117,9 @@
           backgroundColor: 'rgba(36, 138, 253, 0.08)',
           fill: true,
           tension: 0.4,
-          pointBackgroundColor: '#248afd',
-          pointRadius: 5,
-          pointHoverRadius: 7,
         }],
       },
-      options: {
-        responsive: true,
-        plugins: { legend: { display: false } },
-        scales: {
-          y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' } },
-          x: { grid: { display: false } },
-        },
-      },
+      options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } },
     });
   }
 

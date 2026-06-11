@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <title>Paramètres - PharmaRoyal</title>
+  <link rel="stylesheet" href="assets/vendors/ti-icons/css/themify-icons.css" />
+  <link rel="stylesheet" href="assets/vendors/base/vendor.bundle.base.css" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/pharma.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+  <link rel="shortcut icon" href="assets/images/favicon.png" />
+</head>
+<body class="pharma-crud-page pharma-settings-page">
+  <div class="container-scroller">
+    <nav class="navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
+      <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
+        <a class="navbar-brand brand-logo me-5" href="home.html"><img src="assets/images/logo.svg" class="me-2" alt="logo" /></a>
+        <a class="navbar-brand brand-logo-mini" href="home.html"><img src="assets/images/logo-mini.svg" alt="logo" /></a>
+      </div>
+      <div class="navbar-menu-wrapper d-flex align-items-center justify-content-end">
+        <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-toggle="minimize"><span class="ti-view-list"></span></button>
+        <ul class="navbar-nav navbar-nav-right">
+          <li class="nav-item nav-profile dropdown">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" id="profileDropdown"><img src="assets/images/faces/face28.jpg" alt="profile" /></a>
+            <div class="dropdown-menu dropdown-menu-right navbar-dropdown" aria-labelledby="profileDropdown">
+              <a class="dropdown-item" href="#" data-logout><i class="ti-power-off text-primary"></i> Déconnexion</a>
+            </div>
+          </li>
+        </ul>
+        <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button" data-toggle="offcanvas"><span class="ti-view-list"></span></button>
+      </div>
+    </nav>
+    <div class="container-fluid page-body-wrapper">
+      <nav class="sidebar sidebar-offcanvas" id="sidebar"><ul class="nav"></ul></nav>
+      <div class="main-panel">
+        <div class="content-wrapper">
+          <div class="pharma-page-header">
+            <div class="pharma-page-header__info">
+              <span class="pharma-breadcrumb">Administration</span>
+              <h4 class="pharma-page-title">Paramètres pharmacie</h4>
+              <p class="pharma-page-desc">Identité, seuils d'alerte, objectifs et règles du moteur de décision.</p>
+            </div>
+            <div class="pharma-page-actions">
+              <a href="home.html" class="btn btn-pharma btn-pharma-outline"><i class="ti-home"></i> Tableau de bord</a>
+              <a href="audit.html" class="btn btn-pharma btn-pharma-outline"><i class="ti-list"></i> Audit</a>
+              <button type="button" class="btn btn-pharma btn-pharma-success" id="btn-run-engine"><i class="ti-light-bulb"></i> Actualiser décisions</button>
+              <button type="submit" form="param-form" class="btn btn-pharma btn-pharma-primary"><i class="ti-save"></i> Enregistrer</button>
+            </div>
+          </div>
+
+          <div class="row pharma-crud-kpis">
+            <div class="col-md-3 grid-margin stretch-card">
+              <div class="card pharma-kpi pharma-kpi--compact">
+                <div class="card-body">
+                  <p class="pharma-kpi__label">Établissement</p>
+                  <h3 class="pharma-kpi__value pharma-kpi__value--sm" id="kpi-nom">—</h3>
+                  <i class="ti-home pharma-kpi__icon"></i>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 grid-margin stretch-card">
+              <div class="card pharma-kpi pharma-kpi--compact pharma-kpi--success">
+                <div class="card-body">
+                  <p class="pharma-kpi__label">Objectif CA / jour</p>
+                  <h3 class="pharma-kpi__value text-success" id="kpi-objectif">—</h3>
+                  <i class="ti-money pharma-kpi__icon"></i>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 grid-margin stretch-card">
+              <div class="card pharma-kpi pharma-kpi--compact pharma-kpi--warning">
+                <div class="card-body">
+                  <p class="pharma-kpi__label">Marge minimum</p>
+                  <h3 class="pharma-kpi__value text-warning" id="kpi-marge">—</h3>
+                  <i class="ti-bar-chart pharma-kpi__icon"></i>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 grid-margin stretch-card">
+              <div class="card pharma-kpi pharma-kpi--compact pharma-kpi--danger">
+                <div class="card-body">
+                  <p class="pharma-kpi__label">Alerte péremption</p>
+                  <h3 class="pharma-kpi__value text-danger" id="kpi-peremp">—</h3>
+                  <i class="ti-timer pharma-kpi__icon"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <ul class="nav nav-tabs pharma-tabs" id="page-tabs" data-default-tab="identite">
+            <li class="nav-item">
+              <a class="nav-link active tab-link" data-tab="identite" href="#identite"><i class="ti-id-badge"></i> Identité</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link tab-link" data-tab="seuils" href="#seuils"><i class="ti-panel"></i> Seuils &amp; objectifs</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link tab-link" data-tab="regles" href="#regles"><i class="ti-settings"></i> Règles intelligentes</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link tab-link" data-tab="apercu" href="#apercu"><i class="ti-eye"></i> Aperçu</a>
+            </li>
+          </ul>
+
+          <form id="param-form">
+            <div class="tab-content">
+              <!-- Identité -->
+              <div class="tab-pane active show" id="identite">
+                <div class="row pharma-split-form">
+                  <div class="col-lg-8 grid-margin stretch-card">
+                    <div class="card pharma-card">
+                      <div class="card-body pharma-form">
+                        <div class="pharma-card-header">
+                          <div class="pharma-card-header__icon"><i class="ti-home"></i></div>
+                          <div>
+                            <h6 class="pharma-card-header__title">Identité de la pharmacie</h6>
+                            <p class="pharma-card-header__sub">Affichée sur les tickets et les documents</p>
+                          </div>
+                        </div>
+                        <div class="pharma-form-section">
+                          <div class="pharma-form-section__title">Informations générales</div>
+                          <div class="pharma-form-grid">
+                            <div class="span-2">
+                              <label for="nom_pharmacie">Nom de l'établissement</label>
+                              <input type="text" class="form-control" id="nom_pharmacie" name="nom_pharmacie" placeholder="Ex. PharmaRoyal Douala" required />
+                            </div>
+                            <div>
+                              <label for="devise">Devise</label>
+                              <input type="text" class="form-control" id="devise" name="devise" placeholder="FCFA" />
+                            </div>
+                            <div class="span-2">
+                              <label for="adresse">Adresse</label>
+                              <textarea class="form-control" id="adresse" name="adresse" rows="2" placeholder="Quartier, ville, pays"></textarea>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="pharma-form-section">
+                          <div class="pharma-form-section__title">Contact &amp; alertes</div>
+                          <div class="pharma-form-grid">
+                            <div>
+                              <label for="telephone">Téléphone</label>
+                              <div class="pharma-input-icon">
+                                <i class="ti-mobile"></i>
+                                <input type="text" class="form-control" id="telephone" name="telephone" placeholder="+237 6XX XX XX XX" />
+                              </div>
+                            </div>
+                            <div>
+                              <label for="email_alerte">Email alertes</label>
+                              <div class="pharma-input-icon">
+                                <i class="ti-email"></i>
+                                <input type="email" class="form-control" id="email_alerte" name="email_alerte" placeholder="alertes@pharmacie.local" />
+                              </div>
+                            </div>
+                          </div>
+                          <p class="pharma-field-hint mt-2 mb-0"><i class="ti-info-alt"></i> L'email servira aux notifications externes (SMTP à configurer).</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-lg-4 grid-margin stretch-card">
+                    <div class="pharma-side-panel pharma-side-panel--sticky" id="panel-identite">
+                      <div class="pharma-side-panel__icon"><i class="ti-ticket"></i></div>
+                      <h6>Tickets de caisse</h6>
+                      <p>Le nom et la devise configurés ici apparaissent sur chaque ticket imprimé après une vente.</p>
+                      <ul>
+                        <li>Nom visible en en-tête du ticket</li>
+                        <li>Devise utilisée pour les montants</li>
+                        <li>Adresse optionnelle sur documents futurs</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Seuils -->
+              <div class="tab-pane fade" id="seuils">
+                <div class="row pharma-split-form">
+                  <div class="col-lg-8 grid-margin stretch-card">
+                    <div class="card pharma-card">
+                      <div class="card-body pharma-form">
+                        <div class="pharma-card-header">
+                          <div class="pharma-card-header__icon pharma-card-header__icon--warning"><i class="ti-panel"></i></div>
+                          <div>
+                            <h6 class="pharma-card-header__title">Seuils &amp; objectifs</h6>
+                            <p class="pharma-card-header__sub">Pilotage des alertes et du chiffre d'affaires journalier</p>
+                          </div>
+                        </div>
+                        <div class="pharma-form-section">
+                          <div class="pharma-form-section__title">Commerce</div>
+                          <div class="pharma-form-grid pharma-form-grid--3">
+                            <div>
+                              <label for="seuil_marge_min">Marge minimum (%)</label>
+                              <input type="number" class="form-control" id="seuil_marge_min" name="seuil_marge_min" step="0.1" min="0" />
+                              <span class="pharma-field-hint">Alerte si marge &lt; seuil</span>
+                            </div>
+                            <div>
+                              <label for="objectif_ca_jour">Objectif CA / jour</label>
+                              <input type="number" class="form-control" id="objectif_ca_jour" name="objectif_ca_jour" min="0" step="1000" />
+                              <span class="pharma-field-hint">FCFA — notification fin de journée</span>
+                            </div>
+                            <div>
+                              <label for="delai_fournisseur_jours">Délai fournisseur (j)</label>
+                              <input type="number" class="form-control" id="delai_fournisseur_jours" name="delai_fournisseur_jours" min="1" />
+                              <span class="pharma-field-hint">Calcul rupture imminente</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="pharma-form-section">
+                          <div class="pharma-form-section__title">Stock &amp; péremption</div>
+                          <div class="pharma-form-grid">
+                            <div>
+                              <label for="seuil_peremption_jours">Fenêtre alerte péremption (j)</label>
+                              <input type="number" class="form-control" id="seuil_peremption_jours" name="seuil_peremption_jours" min="1" />
+                              <span class="pharma-field-hint">Dashboard — péremptions à surveiller</span>
+                            </div>
+                            <div class="pharma-settings-gauge" id="gauge-peremp">
+                              <div class="pharma-settings-gauge__bar"><div class="pharma-settings-gauge__fill"></div></div>
+                              <small class="text-muted">Fenêtre actuelle : <strong id="gauge-peremp-label">—</strong> jours</small>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-lg-4 grid-margin stretch-card">
+                    <div class="pharma-side-panel pharma-side-panel--sticky" id="panel-seuils">
+                      <div class="pharma-side-panel__icon"><i class="ti-money"></i></div>
+                      <h6>Objectif journalier</h6>
+                      <p>Si un objectif CA est défini, le système notifie l'administrateur en fin de journée selon le résultat.</p>
+                      <div class="pharma-settings-stat mt-3">
+                        <span class="pharma-settings-stat__label">Objectif actuel</span>
+                        <span class="pharma-settings-stat__value" id="side-objectif">—</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Règles -->
+              <div class="tab-pane fade" id="regles">
+                <div class="row pharma-split-form">
+                  <div class="col-lg-8 grid-margin stretch-card">
+                    <div class="card pharma-card">
+                      <div class="card-body pharma-form">
+                        <div class="pharma-card-header">
+                          <div class="pharma-card-header__icon pharma-card-header__icon--success"><i class="ti-light-bulb"></i></div>
+                          <div>
+                            <h6 class="pharma-card-header__title">Règles du moteur de décision</h6>
+                            <p class="pharma-card-header__sub">Paramètres utilisés par les recommandations et notifications</p>
+                          </div>
+                        </div>
+                        <div class="pharma-form-section">
+                          <div class="pharma-form-section__title">Règles métier</div>
+                          <div class="pharma-form-grid pharma-form-grid--3">
+                            <div>
+                              <label for="regle-peremption-urgent">Péremption urgente (j)</label>
+                              <input type="number" class="form-control pharma-regle-input" id="regle-peremption-urgent" data-regle="seuil_peremption_urgent" min="1" />
+                              <span class="pharma-field-hint">Priorité critique &lt; 7 j</span>
+                            </div>
+                            <div>
+                              <label for="regle-surstock">Ratio surstock</label>
+                              <input type="number" class="form-control pharma-regle-input" id="regle-surstock" data-regle="seuil_surstock_ratio" min="2" step="0.5" />
+                              <span class="pharma-field-hint">Stock &gt; ratio × minimum</span>
+                            </div>
+                            <div>
+                              <label for="regle-dormant">Stock dormant (j)</label>
+                              <input type="number" class="form-control pharma-regle-input" id="regle-dormant" data-regle="stock_dormant_jours" min="30" />
+                              <span class="pharma-field-hint">Sans vente = alerte</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="pharma-settings-rules-list" id="rules-explainer">
+                          <div class="pharma-settings-rule">
+                            <i class="ti-alert text-warning"></i>
+                            <div><strong>Surstock</strong> — déclenché quand le stock dépasse le ratio × seuil minimum.</div>
+                          </div>
+                          <div class="pharma-settings-rule">
+                            <i class="ti-timer text-danger"></i>
+                            <div><strong>Péremption</strong> — lots proches de la date génèrent promo ou retour suggéré.</div>
+                          </div>
+                          <div class="pharma-settings-rule">
+                            <i class="ti-archive text-muted"></i>
+                            <div><strong>Stock dormant</strong> — produits sans vente depuis N jours.</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-lg-4 grid-margin stretch-card">
+                    <div class="pharma-side-panel pharma-side-panel--sticky" id="panel-regles">
+                      <div class="pharma-side-panel__icon"><i class="ti-light-bulb"></i></div>
+                      <h6>Moteur de décision</h6>
+                      <p>Les règles sont évaluées à chaque vente, achat, connexion et via la tâche planifiée (cron).</p>
+                      <button type="button" class="btn btn-pharma btn-pharma-outline btn-block btn-sm mt-3" id="btn-run-engine-side">
+                        <i class="ti-reload"></i> Exécuter maintenant
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Aperçu -->
+              <div class="tab-pane fade" id="apercu">
+                <div class="row">
+                  <div class="col-lg-8 grid-margin stretch-card">
+                    <div class="card pharma-card">
+                      <div class="card-body">
+                        <div class="pharma-card-header">
+                          <div class="pharma-card-header__icon"><i class="ti-eye"></i></div>
+                          <div>
+                            <h6 class="pharma-card-header__title">Récapitulatif de configuration</h6>
+                            <p class="pharma-card-header__sub">Vue synthétique avant enregistrement</p>
+                          </div>
+                        </div>
+                        <div class="pharma-settings-preview" id="settings-preview">
+                          <p class="text-muted">Chargement…</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-lg-4 grid-margin stretch-card">
+                    <div class="card pharma-card pharma-card--outline">
+                      <div class="card-body">
+                        <h6 class="mb-3"><i class="ti-check-box text-success"></i> Checklist production</h6>
+                        <ul class="pharma-settings-checklist">
+                          <li>Nom pharmacie renseigné</li>
+                          <li>Objectif CA adapté à l'activité</li>
+                          <li>Seuils marge et péremption validés</li>
+                          <li>Cron <code>run_decisions.php</code> planifié</li>
+                          <li>Mots de passe admin modifiés</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card pharma-card pharma-settings-footer grid-margin">
+              <div class="card-body py-3">
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                  <span class="text-muted small" id="param-status"><i class="ti-info-alt"></i> Modifications non enregistrées</span>
+                  <div class="pharma-form-actions mt-0 pt-0 border-0">
+                    <button type="button" class="btn btn-pharma btn-pharma-outline" id="btn-reset-preview"><i class="ti-reload"></i> Recharger</button>
+                    <button type="submit" class="btn btn-pharma btn-pharma-primary"><i class="ti-save"></i> Enregistrer les paramètres</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+        <footer class="footer">
+          <div class="d-sm-flex justify-content-center justify-content-sm-between">
+            <span class="text-muted text-center text-sm-left d-block d-sm-inline-block">PharmaRoyal © <span id="current-year"></span></span>
+            <span class="float-none float-sm-right d-block mt-1 mt-sm-0 text-center">Configuration système</span>
+          </div>
+        </footer>
+      </div>
+    </div>
+  </div>
+  <script src="assets/vendors/base/vendor.bundle.base.js"></script>
+  <script src="assets/js/jquery.cookie.js"></script>
+  <script src="assets/js/off-canvas.js"></script>
+  <script src="assets/js/hoverable-collapse.js"></script>
+  <script src="assets/js/template.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="assets/js/app/api.js"></script>
+  <script src="assets/js/app/swal.js"></script>
+  <script src="assets/js/app/ui.js"></script>
+  <script src="assets/js/app/toast.js"></script>
+  <script src="assets/js/app/auth.js"></script>
+  <script src="assets/js/app/notifications.js"></script>
+  <script src="assets/js/app/layout.js"></script>
+  <script src="assets/js/app/tabs.js"></script>
+  <script src="assets/js/app/pages/parametres.js"></script>
+</body>
+</html>

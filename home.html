@@ -35,6 +35,9 @@
         <nav class="sidebar sidebar-offcanvas" id="sidebar"><ul class="nav"></ul></nav>
         <div class="main-panel">
           <div class="content-wrapper">
+            <div class="card pharma-card grid-margin" id="briefing-card">
+              <div class="card-body" id="briefing-panel"><p class="text-muted mb-0">Chargement du briefing...</p></div>
+            </div>
             <div class="pharma-page-header">
               <div class="pharma-page-header__info">
                 <span class="pharma-breadcrumb">Pilotage</span>
@@ -110,19 +113,19 @@
                 </div>
               </div>
             </div>
-            <div class="row" id="alertes">
+            <div class="row dash-gestion-only" id="recommandations">
               <div class="col-12 grid-margin stretch-card">
                 <div class="card pharma-card">
                   <div class="card-body">
                     <div class="pharma-card-header">
-                      <div class="pharma-card-header__icon"><i class="ti-bell"></i></div>
+                      <div class="pharma-card-header__icon"><i class="ti-light-bulb"></i></div>
                       <div>
-                        <h6 class="pharma-card-header__title">Alertes intelligentes</h6>
-                        <p class="pharma-card-header__sub">Stock, péremption et réapprovisionnement</p>
+                        <h6 class="pharma-card-header__title">Recommandations intelligentes</h6>
+                        <p class="pharma-card-header__sub">Réappro, promos péremption — appliquer en 1 clic</p>
                       </div>
-                      <a href="stock.html#etat" class="btn btn-pharma btn-pharma-outline btn-sm ms-auto">Voir le stock</a>
+                      <button type="button" class="btn btn-pharma btn-pharma-outline btn-sm ms-auto" id="btn-run-decisions">Actualiser</button>
                     </div>
-                    <div id="alertes-list"><p class="text-muted">Chargement...</p></div>
+                    <div id="recommandations-list"><p class="text-muted">Chargement...</p></div>
                   </div>
                 </div>
               </div>
@@ -149,7 +152,16 @@
     <script src="assets/js/app/ui.js"></script>
     <script src="assets/js/app/toast.js"></script>
     <script src="assets/js/app/auth.js"></script>
+    <script src="assets/js/app/notifications.js"></script>
+    <script src="assets/js/app/notifications.js"></script>
     <script src="assets/js/app/layout.js"></script>
     <script src="assets/js/app/pages/dashboard.js"></script>
+    <script>
+      document.getElementById('btn-run-decisions')?.addEventListener('click', async () => {
+        await PharmaAPI.post('recommandations/executer', {});
+        PharmaSwal.toast('Moteur de décision exécuté');
+        location.reload();
+      });
+    </script>
   </body>
 </html>

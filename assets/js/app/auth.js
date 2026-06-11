@@ -4,7 +4,7 @@ const PharmaAuth = (() => {
   async function login(email, password) {
     const res = await PharmaAPI.post('auth/login', { email, password });
     currentUser = res.user;
-    return res.user;
+    return res;
   }
 
   async function logout() {

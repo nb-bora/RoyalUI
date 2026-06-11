@@ -57,6 +57,9 @@
               <li class="nav-item">
                 <a class="nav-link tab-link" data-tab="mouvement" href="#mouvement"><i class="ti-exchange-vertical"></i> Ajustement manuel</a>
               </li>
+              <li class="nav-item">
+                <a class="nav-link tab-link" data-tab="inventaire" href="#inventaire"><i class="ti-clipboard"></i> Inventaire physique</a>
+              </li>
             </ul>
 
             <div class="tab-content">
@@ -276,6 +279,27 @@
                   </div>
                 </div>
               </div>
+
+              <div class="tab-pane fade" id="inventaire">
+                <div class="card pharma-card">
+                  <div class="card-body">
+                    <div class="pharma-card-header">
+                      <div class="pharma-card-header__icon"><i class="ti-clipboard"></i></div>
+                      <div class="flex-grow-1">
+                        <h6 class="pharma-card-header__title">Inventaire physique</h6>
+                        <p class="pharma-card-header__sub">Saisissez les quantités réelles — les écarts mettront à jour le stock</p>
+                      </div>
+                      <button type="button" class="btn btn-pharma btn-pharma-primary btn-sm" id="btn-valider-inventaire"><i class="ti-check"></i> Valider inventaire</button>
+                    </div>
+                    <div class="table-responsive mt-3">
+                      <table class="table table-hover pharma-table-compact" id="inventaire-table">
+                        <thead><tr><th>Produit</th><th>Théorique</th><th>Réel</th><th>Écart</th></tr></thead>
+                        <tbody id="inventaire-tbody"></tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           <footer class="footer">
@@ -299,6 +323,7 @@
     <script src="assets/js/app/ui.js"></script>
     <script src="assets/js/app/toast.js"></script>
     <script src="assets/js/app/auth.js"></script>
+    <script src="assets/js/app/notifications.js"></script>
     <script src="assets/js/app/layout.js"></script>
     <script src="assets/js/app/tabs.js"></script>
     <script src="assets/js/app/pages/stock.js"></script>

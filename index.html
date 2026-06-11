@@ -107,11 +107,11 @@
       const errEl = document.getElementById('login-error');
       errEl.classList.add('d-none');
       try {
-        await PharmaAuth.login(
+        const res = await PharmaAuth.login(
           document.getElementById('login-email').value,
           document.getElementById('login-password').value
         );
-        window.location.href = 'home.html';
+        window.location.href = res.redirect || 'home.html';
       } catch (err) {
         showToast(err.message || 'Identifiants incorrects', 'error');
       }

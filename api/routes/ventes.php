@@ -1,13 +1,18 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/../services/LotStockService.php';
+require_once __DIR__ . '/../services/DecisionEngine.php';
+
 $user = require_auth();
 
-// GET /ventes — historique
-// GET /ventes/{id} — détail
 if ($method === 'GET' && $id) {
     $vente = db()->prepare(
-        'SELECT v.*, c.nom AS client_nom FROM vente v LEFT JOIN client c ON c.id = v.id_client WHERE v.id = ?'
+        'SELECT v.*, c.nom AS client_nom, u.nom AS vendeur_nom
+         FROM vente v
+         LEFT JOIN client c ON c.id = v.id_client
+         LEFT JOIN utilisateur u ON u.id = v.id_utilisateur
+         WHERE v.id = ?'
     );
     $vente->execute([$id]);
     $row = $vente->fetch();
@@ -15,32 +20,77 @@ if ($method === 'GET' && $id) {
         json_error('Vente introuvable', 404);
     }
     $lignes = db()->prepare(
-        'SELECT lv.*, m.nom AS medicament_nom
-         FROM ligne_vente lv JOIN medicament m ON m.id = lv.id_medicament
-         WHERE lv.id_vente = ?'
+        'SELECT lv.*, m.nom AS medicament_nom FROM ligne_vente lv JOIN medicament m ON m.id = lv.id_medicament WHERE lv.id_vente = ?'
     );
     $lignes->execute([$id]);
     $row['lignes'] = $lignes->fetchAll();
-    $row['total'] = array_sum(array_map(fn($l) => $l['quantite'] * $l['prix_vente'], $row['lignes']));
+    $row['total'] = (float) $row['montant_total'] ?: array_sum(array_map(fn($l) => $l['quantite'] * $l['prix_vente'], $row['lignes']));
     json_response(['success' => true, 'data' => $row]);
 }
 
+if ($method === 'GET' && $action === 'mes-ventes') {
+    $stmt = db()->prepare(
+        "SELECT v.id, v.date_vente, c.nom AS client_nom, v.montant_total AS total, v.statut
+         FROM vente v LEFT JOIN client c ON c.id = v.id_client
+         WHERE v.id_utilisateur = ? AND DATE(v.date_vente) = CURDATE()
+         ORDER BY v.date_vente DESC"
+    );
+    $stmt->execute([(int) $user['id']]);
+    json_response(['success' => true, 'data' => $stmt->fetchAll()]);
+}
+
 if ($method === 'GET') {
+    $where = $user['role'] === 'vendeur' ? "WHERE v.statut = 'validee'" : '';
     $rows = db()->query(
-        "SELECT v.id, v.date_vente, c.nom AS client_nom,
+        "SELECT v.id, v.date_vente, v.statut, c.nom AS client_nom, u.nom AS vendeur_nom,
                 COUNT(lv.id) AS nb_lignes,
-                COALESCE(SUM(lv.quantite * lv.prix_vente), 0) AS total
+                COALESCE(v.montant_total, SUM(lv.quantite * lv.prix_vente), 0) AS total
          FROM vente v
          LEFT JOIN client c ON c.id = v.id_client
+         LEFT JOIN utilisateur u ON u.id = v.id_utilisateur
          LEFT JOIN ligne_vente lv ON lv.id_vente = v.id
-         GROUP BY v.id, v.date_vente, c.nom
+         $where
+         GROUP BY v.id, v.date_vente, v.statut, c.nom, u.nom, v.montant_total
          ORDER BY v.date_vente DESC
          LIMIT 200"
     )->fetchAll();
     json_response(['success' => true, 'data' => $rows]);
 }
 
-// POST /ventes — créer vente (intelligence niveau 1)
+// POST ventes/{id}/annuler
+if ($method === 'POST' && $id && $subAction === 'annuler') {
+    require_auth(['admin', 'gestionnaire']);
+    $pdo = db();
+    $pdo->beginTransaction();
+    try {
+        $v = $pdo->prepare("SELECT * FROM vente WHERE id = ? AND statut = 'validee' FOR UPDATE");
+        $v->execute([$id]);
+        $vente = $v->fetch();
+        if (!$vente) {
+            throw new RuntimeException('Vente introuvable ou déjà annulée');
+        }
+
+        $lignes = $pdo->prepare('SELECT * FROM ligne_vente WHERE id_vente = ?');
+        $lignes->execute([$id]);
+        foreach ($lignes->fetchAll() as $lv) {
+            $pdo->prepare('UPDATE medicament SET stock_actuel = stock_actuel + ? WHERE id = ?')
+                ->execute([$lv['quantite'], $lv['id_medicament']]);
+            LotStockService::restoreFromVente($pdo, (int) $lv['id']);
+            $pdo->prepare(
+                'INSERT INTO mouvement_stock (id_medicament, id_reference, type_mouvement, quantite) VALUES (?, ?, ?, ?)'
+            )->execute([$lv['id_medicament'], $id, 'ENTREE', $lv['quantite']]);
+        }
+
+        $pdo->prepare("UPDATE vente SET statut = 'annulee' WHERE id = ?")->execute([$id]);
+        $pdo->commit();
+        audit((int) $user['id'], 'annulation_vente', 'vente', $id);
+        json_response(['success' => true]);
+    } catch (Throwable $e) {
+        $pdo->rollBack();
+        json_error($e->getMessage(), 422);
+    }
+}
+
 if ($method === 'POST') {
     $data = read_json();
     $lignes = $data['lignes'] ?? [];
@@ -74,8 +124,8 @@ if ($method === 'POST') {
             }
         }
 
-        $stmt = $pdo->prepare('INSERT INTO vente (id_client) VALUES (?)');
-        $stmt->execute([$idClient]);
+        $stmt = $pdo->prepare('INSERT INTO vente (id_client, id_utilisateur, statut, montant_total) VALUES (?, ?, ?, 0)');
+        $stmt->execute([$idClient, (int) $user['id'], 'validee']);
         $idVente = (int) $pdo->lastInsertId();
 
         $total = 0;
@@ -90,9 +140,12 @@ if ($method === 'POST') {
 
             $pdo->prepare('INSERT INTO ligne_vente (id_vente, id_medicament, quantite, prix_vente) VALUES (?, ?, ?, ?)')
                 ->execute([$idVente, $idMed, $qte, $prix]);
+            $idLigneVente = (int) $pdo->lastInsertId();
 
             $pdo->prepare('UPDATE medicament SET stock_actuel = stock_actuel - ? WHERE id = ?')
                 ->execute([$qte, $idMed]);
+
+            LotStockService::consumeFefo($pdo, $idMed, $qte, $idLigneVente);
 
             $pdo->prepare(
                 'INSERT INTO mouvement_stock (id_medicament, id_reference, type_mouvement, quantite) VALUES (?, ?, ?, ?)'
@@ -101,9 +154,16 @@ if ($method === 'POST') {
             $total += $qte * $prix;
         }
 
+        $pdo->prepare('UPDATE vente SET montant_total = ? WHERE id = ?')->execute([$total, $idVente]);
         $pdo->commit();
         audit((int) $user['id'], 'vente', 'vente', $idVente);
-        json_response(['success' => true, 'id' => $idVente, 'total' => $total]);
+
+        try {
+            DecisionEngine::run((int) $user['id']);
+        } catch (Throwable) {
+        }
+
+        json_response(['success' => true, 'id' => $idVente, 'total' => $total, 'ticket_url' => "api/index.php?r=tickets/$idVente"]);
     } catch (Throwable $e) {
         $pdo->rollBack();
         json_error($e->getMessage(), 422);

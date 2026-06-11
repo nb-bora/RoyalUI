@@ -20,5 +20,9 @@
   }
 
   periode.addEventListener('change', load);
+  document.getElementById('btn-export-csv')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    window.location.href = `api/index.php?r=rapports&jours=${periode.value}&export=csv`;
+  });
   load();
 })();

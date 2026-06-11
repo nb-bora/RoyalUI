@@ -32,6 +32,15 @@ class NotificationService
 
     public static function listForUser(array $user, int $limit = 50): array
     {
+        try {
+            return self::listForUserQuery($user, $limit);
+        } catch (Throwable) {
+            return [];
+        }
+    }
+
+    private static function listForUserQuery(array $user, int $limit = 50): array
+    {
         $stmt = db()->prepare(
             "SELECT * FROM notification
              WHERE (expire_at IS NULL OR expire_at > NOW())
@@ -48,13 +57,17 @@ class NotificationService
 
     public static function countUnread(array $user): int
     {
-        $stmt = db()->prepare(
-            "SELECT COUNT(*) FROM notification
-             WHERE lu = 0 AND (expire_at IS NULL OR expire_at > NOW())
-               AND (id_utilisateur = ? OR id_utilisateur IS NULL AND (role_cible IS NULL OR role_cible = ?))"
-        );
-        $stmt->execute([(int) $user['id'], $user['role']]);
-        return (int) $stmt->fetchColumn();
+        try {
+            $stmt = db()->prepare(
+                "SELECT COUNT(*) FROM notification
+                 WHERE lu = 0 AND (expire_at IS NULL OR expire_at > NOW())
+                   AND (id_utilisateur = ? OR id_utilisateur IS NULL AND (role_cible IS NULL OR role_cible = ?))"
+            );
+            $stmt->execute([(int) $user['id'], $user['role']]);
+            return (int) $stmt->fetchColumn();
+        } catch (Throwable) {
+            return 0;
+        }
     }
 
     public static function markRead(int $id, int $userId): void

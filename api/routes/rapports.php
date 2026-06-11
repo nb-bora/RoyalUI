@@ -49,6 +49,23 @@ $stockMort = $pdo->query(
      ORDER BY m.stock_actuel DESC LIMIT 15"
 )->fetchAll();
 
+$export = $_GET['export'] ?? '';
+
+if ($export === 'csv') {
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename="rapport_' . $periode . 'j.csv"');
+    $out = fopen('php://output', 'w');
+    fputcsv($out, ['Rapport PharmaRoyal', $periode . ' jours'], ';');
+    fputcsv($out, ['CA période', $ca], ';');
+    fputcsv($out, [], ';');
+    fputcsv($out, ['Top ventes', 'Qté', 'CA'], ';');
+    foreach ($topVentes as $r) {
+        fputcsv($out, [$r['nom'], $r['qte'], $r['ca']], ';');
+    }
+    fclose($out);
+    exit;
+}
+
 json_response([
     'success' => true,
     'ca_periode' => $ca,

@@ -291,7 +291,56 @@
     } catch (err) { PharmaSwal.error('Erreur', err.message); }
   });
 
+  async function loadInventaire() {
+    const tbody = document.getElementById('inventaire-tbody');
+    if (!tbody) return;
+    try {
+      const res = await PharmaAPI.get('inventaire/produits');
+      tbody.innerHTML = res.data.map((m) => `
+        <tr data-id="${m.id}">
+          <td><strong>${m.nom}</strong><br><small class="text-muted">${m.categorie_nom || ''}</small></td>
+          <td class="inv-theo">${m.stock_theorique}</td>
+          <td><input type="number" class="form-control form-control-sm inv-reel" value="${m.stock_theorique}" min="0" style="width:90px" /></td>
+          <td class="inv-ecart text-muted">0</td>
+        </tr>`).join('');
+      tbody.querySelectorAll('.inv-reel').forEach((inp) => {
+        inp.addEventListener('input', () => {
+          const row = inp.closest('tr');
+          const theo = +row.querySelector('.inv-theo').textContent;
+          const ecart = +inp.value - theo;
+          const cell = row.querySelector('.inv-ecart');
+          cell.textContent = (ecart > 0 ? '+' : '') + ecart;
+          cell.className = 'inv-ecart ' + (ecart === 0 ? 'text-muted' : ecart > 0 ? 'text-success' : 'text-danger');
+        });
+      });
+    } catch (e) {
+      tbody.innerHTML = `<tr><td colspan="4">${pharmaEmpty('Erreur chargement', 'ti-alert')}</td></tr>`;
+    }
+  }
+
+  document.getElementById('btn-valider-inventaire')?.addEventListener('click', async () => {
+    const rows = document.querySelectorAll('#inventaire-tbody tr[data-id]');
+    const lignes = [...rows].map((r) => ({
+      id_medicament: +r.dataset.id,
+      stock_theorique: +r.querySelector('.inv-theo').textContent,
+      stock_reel: +r.querySelector('.inv-reel').value,
+    }));
+    const ecarts = lignes.filter((l) => l.stock_reel !== l.stock_theorique);
+    if (!ecarts.length) {
+      PharmaSwal.toast('Aucun écart détecté');
+      return;
+    }
+    if (!await PharmaSwal.confirm({ title: 'Valider l\'inventaire ?', html: `${ecarts.length} écart(s) seront appliqués au stock.`, confirmText: 'Valider' })) return;
+    try {
+      await PharmaAPI.post('inventaire', { lignes });
+      PharmaSwal.toast('Inventaire enregistré');
+      await loadStock();
+      await loadInventaire();
+    } catch (e) { PharmaSwal.error('Erreur', e.message); }
+  });
+
   await loadMeds();
   await loadStock();
   await loadMouvements();
+  await loadInventaire();
 })();

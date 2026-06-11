@@ -72,6 +72,8 @@ try {
         'INSERT INTO ligne_achat (id_achat, id_medicament, quantite, prix_achat, date_peremption) VALUES (1, 3, 50, 180, DATE_ADD(CURDATE(), INTERVAL 20 DAY))'
     )->execute();
 
+    require __DIR__ . '/migrate.php';
+
     echo "Installation réussie !\n\n";
     echo "Comptes de démo (mot de passe : admin123)\n";
     echo "  admin@pharma.local      (admin)\n";

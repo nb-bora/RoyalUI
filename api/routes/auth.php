@@ -21,7 +21,27 @@ if ($action === 'login' && $method === 'POST') {
     unset($user['mot_de_passe']);
     $_SESSION['user'] = $user;
     audit((int) $user['id'], 'connexion', 'utilisateur', (int) $user['id']);
-    json_response(['success' => true, 'user' => $user]);
+
+    $briefing = null;
+    $redirect = 'home.html';
+    try {
+        require_once __DIR__ . '/../services/ActiviteService.php';
+        require_once __DIR__ . '/../services/DecisionEngine.php';
+        ActiviteService::log((int) $user['id'], 'connexion', 'index.html');
+        DecisionEngine::run((int) $user['id']);
+        $briefing = DecisionEngine::briefing($user);
+        $pref = db()->prepare('SELECT page_accueil FROM utilisateur_preferences WHERE id_utilisateur = ?');
+        $pref->execute([(int) $user['id']]);
+        $page = $pref->fetchColumn();
+        if ($page) {
+            $redirect = $page;
+        } elseif ($user['role'] === 'vendeur') {
+            $redirect = 'caisse.html';
+        }
+    } catch (Throwable) {
+    }
+
+    json_response(['success' => true, 'user' => $user, 'redirect' => $redirect, 'briefing' => $briefing]);
 }
 
 if ($action === 'logout' && $method === 'POST') {

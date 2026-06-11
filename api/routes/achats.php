@@ -1,6 +1,9 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/../services/LotStockService.php';
+require_once __DIR__ . '/../services/DecisionEngine.php';
+
 $user = require_auth(['admin', 'gestionnaire']);
 
 if ($method === 'GET' && $id) {
@@ -64,9 +67,12 @@ if ($method === 'POST') {
             $pdo->prepare(
                 'INSERT INTO ligne_achat (id_achat, id_medicament, quantite, prix_achat, date_peremption) VALUES (?, ?, ?, ?, ?)'
             )->execute([$idAchat, $idMed, $qte, $prix, $peremption]);
+            $idLigneAchat = (int) $pdo->lastInsertId();
 
             $pdo->prepare('UPDATE medicament SET stock_actuel = stock_actuel + ?, prix_achat = ? WHERE id = ?')
                 ->execute([$qte, $prix, $idMed]);
+
+            LotStockService::createFromAchat($idMed, $idLigneAchat, $qte, $peremption, $prix);
 
             $pdo->prepare(
                 'INSERT INTO mouvement_stock (id_medicament, id_reference, type_mouvement, quantite) VALUES (?, ?, ?, ?)'
@@ -75,6 +81,12 @@ if ($method === 'POST') {
 
         $pdo->commit();
         audit((int) $user['id'], 'achat', 'achat', $idAchat);
+
+        try {
+            DecisionEngine::run((int) $user['id']);
+        } catch (Throwable) {
+        }
+
         json_response(['success' => true, 'id' => $idAchat]);
     } catch (Throwable $e) {
         $pdo->rollBack();

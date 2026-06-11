@@ -4,6 +4,7 @@
 
   const cart = [];
   let medicaments = [];
+  let favoriteIds = new Set();
   let activeFilter = 'all';
 
   const searchInput = document.getElementById('search-med');
@@ -28,11 +29,17 @@
   setInterval(updateDateTime, 60000);
 
   try {
-    const [medRes, cliRes] = await Promise.all([
+    const [medRes, cliRes, briefing] = await Promise.all([
       PharmaAPI.get('medicaments'),
       PharmaAPI.get('clients'),
+      PharmaAPI.get('briefing').catch(() => ({ data: {} })),
     ]);
     medicaments = medRes.data;
+    const favSection = briefing.data?.sections?.find((s) => s.type === 'favoris');
+    if (favSection?.produits) {
+      favoriteIds = new Set(favSection.produits.map((p) => p.id));
+    }
+    await ensureCaisseSession();
     clientSelect.innerHTML = '<option value="">— Client passage —</option>' +
       cliRes.data.map((c) => `<option value="${c.id}">${c.nom}</option>`).join('');
     updateKpisDispo();
@@ -48,7 +55,7 @@
   }
 
   function filteredMeds() {
-    let list = medicaments;
+    let list = [...medicaments];
     if (activeFilter === 'dispo') list = list.filter((m) => m.stock_actuel > 0);
     else if (activeFilter === 'bas') list = list.filter((m) => m.statut_stock === 'bas' && m.stock_actuel > 0);
 
@@ -57,6 +64,9 @@
       list = list.filter((m) =>
         m.nom.toLowerCase().includes(q) || (m.code_barre || '').toLowerCase().includes(q)
       );
+    }
+    if (!q && favoriteIds.size) {
+      list.sort((a, b) => (favoriteIds.has(b.id) ? 1 : 0) - (favoriteIds.has(a.id) ? 1 : 0));
     }
     return list;
   }
@@ -103,8 +113,16 @@
     });
   });
 
+  async function ensureCaisseSession() {
+    const res = await PharmaAPI.get('caisse/session');
+    if (!res.data) {
+      await PharmaAPI.post('caisse/ouvrir', { fond_caisse: 0 });
+    }
+  }
+
   document.addEventListener('keydown', (e) => {
     if (e.key === 'F2') { e.preventDefault(); searchInput.focus(); searchInput.select(); }
+    if (e.key === 'F10') { e.preventDefault(); document.getElementById('btn-valider')?.click(); }
     if (e.key === 'Escape' && document.activeElement === searchInput) {
       searchInput.value = '';
       searchClear.classList.add('d-none');
@@ -243,7 +261,19 @@
         id_client: clientSelect.value || null,
         lignes: cart.map((c) => ({ id_medicament: c.id_medicament, quantite: c.quantite, prix_vente: c.prix_vente })),
       });
-      PharmaSwal.success('Vente enregistrée', `Ticket #${res.id} — Total : ${formatMoney(res.total)}`);
+      const print = await Swal.fire({
+        customClass: { popup: 'pharma-swal-popup', confirmButton: 'pharma-swal-btn pharma-swal-btn--confirm', cancelButton: 'pharma-swal-btn pharma-swal-btn--cancel' },
+        buttonsStyling: false,
+        icon: 'success',
+        title: 'Vente enregistrée',
+        html: `Ticket #${res.id} — Total : <strong>${formatMoney(res.total)}</strong>`,
+        showCancelButton: true,
+        confirmButtonText: '<i class="ti-printer"></i> Imprimer ticket',
+        cancelButtonText: 'Continuer',
+      });
+      if (print.isConfirmed) {
+        window.open(`api/index.php?r=tickets/${res.id}`, '_blank', 'width=400,height=600');
+      }
       cart.length = 0;
       clientSelect.value = '';
       const medRes = await PharmaAPI.get('medicaments');
@@ -254,6 +284,33 @@
       searchInput.focus();
     } catch (e) {
       PharmaSwal.error('Vente refusée', e.message);
+    }
+  });
+
+  document.getElementById('btn-cloture-caisse')?.addEventListener('click', async () => {
+    const { value: caReel } = await Swal.fire({
+      customClass: { popup: 'pharma-swal-popup', confirmButton: 'pharma-swal-btn pharma-swal-btn--confirm', cancelButton: 'pharma-swal-btn pharma-swal-btn--cancel' },
+      buttonsStyling: false,
+      title: 'Clôture de caisse',
+      input: 'number',
+      inputLabel: 'Montant réel en caisse (FCFA)',
+      inputAttributes: { min: 0, step: 1 },
+      showCancelButton: true,
+      confirmButtonText: 'Clôturer',
+    });
+    if (caReel === undefined) return;
+    try {
+      const res = await PharmaAPI.post('caisse/cloturer', { ca_reel: parseFloat(caReel) || 0 });
+      Swal.fire({
+        customClass: { popup: 'pharma-swal-popup', confirmButton: 'pharma-swal-btn pharma-swal-btn--confirm' },
+        buttonsStyling: false,
+        icon: 'info',
+        title: 'Caisse clôturée',
+        html: `CA théorique : <strong>${formatMoney(res.ca_theorique)}</strong><br>Écart : <strong>${formatMoney(res.ecart)}</strong>`,
+      });
+      await PharmaAPI.post('caisse/ouvrir', { fond_caisse: 0 });
+    } catch (e) {
+      PharmaSwal.error('Erreur', e.message);
     }
   });
 

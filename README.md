@@ -1,50 +1,83 @@
 # PharmaRoyal
 
-**Système intelligent de gestion de pharmacie** — application web complète pour la gestion des stocks, des ventes au comptoir, des achats fournisseurs, des clients et du pilotage d'activité.
+**Système intelligent de gestion de pharmacie** — application web complète pour la vente au comptoir, la gestion des stocks (FEFO), les achats fournisseurs, le pilotage d'activité et l'aide à la décision.
 
-Le projet combine un **backend PHP/MySQL** (API REST) et un **frontend** basé sur le thème admin **RoyalUI** (Bootstrap), enrichi d'un design system métier (`pharma.css`) et de modules JavaScript modulaires.
+PharmaRoyal combine un **backend PHP/MySQL** (API REST + moteur de décision), un **frontend** basé sur le thème **RoyalUI** (Bootstrap), un design system métier (`pharma.css`) et des modules JavaScript modulaires. Le système couvre les opérations quotidiennes **et** l'autonomie opérationnelle de niveau 2–3 : notifications persistantes, recommandations actionnables, briefing par rôle et tâches planifiées.
 
 ---
 
 ## Table des matières
 
 1. [Aperçu fonctionnel](#aperçu-fonctionnel)
-2. [Stack technique](#stack-technique)
-3. [Architecture](#architecture)
-4. [Prérequis](#prérequis)
-5. [Installation](#installation)
-6. [Configuration](#configuration)
-7. [Base de données](#base-de-données)
-8. [Authentification et rôles](#authentification-et-rôles)
-9. [Pages de l'application](#pages-de-lapplication)
-10. [API REST](#api-rest)
-11. [Structure du projet](#structure-du-projet)
-12. [Modules JavaScript](#modules-javascript)
-13. [Design system](#design-system)
-14. [Logique métier](#logique-métier)
-15. [Comptes de démonstration](#comptes-de-démonstration)
-16. [Parcours utilisateur](#parcours-utilisateur)
-17. [Sécurité](#sécurité)
-18. [Limitations connues](#limitations-connues)
-19. [Dépannage](#dépannage)
+2. [Niveaux d'autonomie](#niveaux-dautonomie)
+3. [Stack technique](#stack-technique)
+4. [Architecture](#architecture)
+5. [Prérequis](#prérequis)
+6. [Installation et migration](#installation-et-migration)
+7. [Configuration](#configuration)
+8. [Tâches planifiées (cron)](#tâches-planifiées-cron)
+9. [Base de données](#base-de-données)
+10. [Authentification et rôles](#authentification-et-rôles)
+11. [Pages de l'application](#pages-de-lapplication)
+12. [API REST](#api-rest)
+13. [Moteur de décision](#moteur-de-décision)
+14. [Structure du projet](#structure-du-projet)
+15. [Modules JavaScript](#modules-javascript)
+16. [Design system](#design-system)
+17. [Logique métier](#logique-métier)
+18. [Comptes de démonstration](#comptes-de-démonstration)
+19. [Parcours utilisateur](#parcours-utilisateur)
+20. [Sécurité](#sécurité)
+21. [Limitations et roadmap](#limitations-et-roadmap)
+22. [Dépannage](#dépannage)
+23. [Crédits et licence](#crédits-et-licence)
 
 ---
 
 ## Aperçu fonctionnel
 
+### Opérations quotidiennes
+
 | Domaine | Fonctionnalités |
 |---------|-----------------|
-| **Tableau de bord** | CA du jour, ventes du jour, alertes stock/péremption, graphique CA 7 jours, top produits 30 jours, centre d'alertes intelligent |
-| **Caisse (POS)** | Recherche produits, panier, client optionnel, validation vente avec contrôle stock, raccourcis clavier |
-| **Médicaments** | CRUD catalogue, prix achat/vente, marge, code-barres, seuil minimum, filtres stock |
+| **Tableau de bord** | Briefing personnalisé par rôle, KPI, graphique CA 7 jours, top produits, recommandations intelligentes |
+| **Caisse (POS)** | Recherche, favoris vendeur, panier, FEFO à la vente, ticket imprimable, session caisse, clôture journalière |
+| **Médicaments** | CRUD catalogue, marge, code-barres, seuil minimum, filtres stock |
 | **Catégories** | CRUD des familles de produits |
-| **Stock** | Vue d'ensemble avec KPI et filtres, barres de niveau, ajustements manuels (entrée/sortie), historique mouvements |
-| **Ventes** | Historique des tickets, détail par vente |
-| **Achats** | Réception fournisseur multi-lignes, date de péremption, mise à jour automatique du stock |
+| **Stock** | KPI et filtres, barres de niveau, ajustements manuels, historique mouvements, **inventaire physique** |
+| **Ventes** | Historique, vendeur, statut, détail, **annulation** avec remise en stock, impression ticket |
+| **Achats** | Réception multi-lignes, péremption, création de **lots FEFO** |
 | **Fournisseurs** | CRUD, statistiques réceptions et volume d'achats |
 | **Clients** | CRUD, association optionnelle aux ventes |
-| **Utilisateurs** | Gestion des comptes et rôles (admin uniquement) |
-| **Rapports** | CA période, top ventes, marges par catégorie, stock dormant (90 jours sans vente) |
+| **Rapports** | CA période, top ventes, marges par catégorie, stock dormant, **export CSV** |
+| **Utilisateurs** | Gestion des comptes et rôles (admin) |
+| **Paramètres** | Seuils, objectif CA, délai fournisseur, règles métier (admin) |
+| **Audit** | Journal des actions sensibles avec statistiques (admin) |
+
+### Intelligence et autonomie
+
+| Domaine | Fonctionnalités |
+|---------|-----------------|
+| **Notifications** | Persistance en base, priorité (critique / haute / info), lu/non lu, cloche navbar, polling 30 s |
+| **Recommandations** | Réappro, commandes suggérées, promos péremption — statut nouvelle/vue/appliquée/ignorée |
+| **DecisionEngine** | Rupture imminente (vélocité), surstock, marge incohérente, péremption urgente, stock dormant, objectif CA, escalade |
+| **Bons de commande** | Création brouillon en 1 clic depuis une recommandation |
+| **Briefing login** | Salutation, stats vendeur, favoris caisse, alertes gestionnaire, liens d'action |
+| **Personnalisation** | Page d'accueil par rôle/préférences, activité utilisateur, traçage vendeur sur chaque vente |
+
+---
+
+## Niveaux d'autonomie
+
+| Niveau | Description | État PharmaRoyal |
+|--------|-------------|------------------|
+| **0 — Enregistrement** | Ventes, stock, achats | ✅ Complet |
+| **1 — Réaction** | Blocage stock, badges, alertes | ✅ Complet |
+| **2 — Recommandation** | Suggestions + bouton appliquer | ✅ Complet |
+| **3 — Semi-auto** | BC brouillon, cron, clôture caisse | ✅ Partiel |
+| **4 — Auto contrôlé** | Commandes sans intervention, ML | ❌ Non prévu |
+
+Le moteur de décision s'exécute à la **connexion**, à chaque **vente/achat**, et via **cron horaire**.
 
 ---
 
@@ -54,255 +87,264 @@ Le projet combine un **backend PHP/MySQL** (API REST) et un **frontend** basé s
 |--------|--------------|
 | **Serveur** | Apache (XAMPP), PHP 8+ (`declare(strict_types=1)`) |
 | **Base de données** | MySQL / MariaDB, charset `utf8mb4` |
-| **API** | REST JSON, routage via `api/index.php?r=...` |
-| **Sessions** | PHP sessions (`pharma_session`), cookies `credentials: 'include'` |
+| **API** | REST JSON, routage `api/index.php?r={ressource}/{id}/{action}` |
+| **Services métier** | PHP classes dans `api/services/` |
+| **Sessions** | PHP (`pharma_session`), `credentials: 'include'` |
 | **Frontend** | HTML5, Bootstrap (RoyalUI), jQuery, DataTables, Chart.js, SweetAlert2 |
 | **Icônes** | Themify Icons |
-| **Devise** | FCFA (configurable en base via table `parametres`) |
+| **Devise** | FCFA (configurable via `parametres`) |
 
-**Dépendances CDN (frontend)** :
-- [SweetAlert2](https://sweetalert2.github.io/) v11
-- [DataTables](https://datatables.net/) v1.13.6 (fr-FR)
-- Chart.js (fichier local `assets/vendors/chart.js/Chart.min.js`)
+**Dépendances CDN** : SweetAlert2 v11, DataTables v1.13.6 (fr-FR), Chart.js (local).
 
 ---
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│  Navigateur (pages HTML + JS modulaire)                     │
-│  index.html → home.html, caisse.html, stock.html, ...       │
-└──────────────────────────┬──────────────────────────────────┘
-                           │ fetch() JSON + cookies session
-                           ▼
-┌─────────────────────────────────────────────────────────────┐
-│  api/index.php  →  routes/*.php  →  helpers.php / config    │
-└──────────────────────────┬──────────────────────────────────┘
-                           │ PDO
-                           ▼
-┌─────────────────────────────────────────────────────────────┐
-│  MySQL — base `pharma`                                      │
-└─────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│  Navigateur                                                       │
+│  index.html → home.html, caisse.html, stock.html, parametres.html…  │
+│  PharmaAPI · PharmaAuth · PharmaLayout · PharmaNotifications       │
+└────────────────────────────┬─────────────────────────────────────┘
+                             │ fetch() JSON + cookie session
+                             ▼
+┌──────────────────────────────────────────────────────────────────┐
+│  api/index.php → routes/*.php                                     │
+│  helpers.php · config.php                                         │
+└────────────────────────────┬─────────────────────────────────────┘
+                             │
+         ┌───────────────────┼───────────────────┐
+         ▼                   ▼                   ▼
+┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+│ DecisionEngine  │ │ NotificationSvc │ │ LotStockService │
+│ ParametresSvc   │ │ ActiviteService │ │ (FEFO)          │
+└────────┬────────┘ └────────┬────────┘ └────────┬────────┘
+         └───────────────────┼───────────────────┘
+                             ▼ PDO
+┌──────────────────────────────────────────────────────────────────┐
+│  MySQL — base `pharma` (22 tables)                                │
+└──────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────┐
+│  api/cron/run_decisions.php · run_escalations.php (planifiés)     │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
-**Principe de routage API** : toutes les requêtes passent par `api/index.php?r={ressource}/{id|action}`.
+**Exemples de routes** :
 
-Exemples :
-- `GET  api/index.php?r=medicaments`
-- `POST api/index.php?r=auth/login`
-- `GET  api/index.php?r=stock/mouvements`
-- `GET  api/index.php?r=ventes/42`
+| Méthode | URL |
+|---------|-----|
+| POST | `api/index.php?r=auth/login` |
+| GET | `api/index.php?r=notifications` |
+| GET | `api/index.php?r=briefing` |
+| POST | `api/index.php?r=ventes/42/annuler` |
+| GET | `api/index.php?r=tickets/42` |
+| POST | `api/index.php?r=recommandations/executer` |
 
 ---
 
 ## Prérequis
 
-- **XAMPP** (ou équivalent : Apache + PHP + MySQL)
-- **PHP** 8.0 ou supérieur avec extensions : `pdo_mysql`, `json`, `session`
-- **MySQL** 5.7+ ou MariaDB 10.3+
+- **XAMPP** (Apache + PHP + MySQL) ou équivalent
+- **PHP** 8.0+ avec `pdo_mysql`, `json`, `session`
+- **MySQL** 5.7+ / MariaDB 10.3+
 - Navigateur moderne (Chrome, Firefox, Edge)
 
 ---
 
-## Installation
+## Installation et migration
 
-### 1. Placer le projet
+### Nouvelle installation
 
-Copier le dossier dans le répertoire web Apache :
-
-```
-C:\xampp\htdocs\RoyalUI\
-```
-
-### 2. Démarrer les services
-
-Démarrer **Apache** et **MySQL** depuis le panneau XAMPP.
-
-### 3. Initialiser la base de données
-
-**Option A — Navigateur (recommandé)**
-
-Ouvrir :
+1. Copier le projet dans `C:\xampp\htdocs\RoyalUI\`
+2. Démarrer **Apache** et **MySQL**
+3. Ouvrir :
 
 ```
 http://localhost/RoyalUI/install/seed.php
 ```
 
-**Option B — Ligne de commande**
+Le script exécute `install/setup.sql` (schéma complet v2), insère les données de démo, puis lance `migrate.php` (lots FEFO, préférences utilisateurs).
 
-```bash
-php install/seed.php
+### Mise à jour d'une base existante
+
+Si PharmaRoyal était déjà installé **avant la v2**, exécuter uniquement :
+
+```
+http://localhost/RoyalUI/install/migrate.php
 ```
 
-Le script :
-1. Exécute `install/setup.sql` (création base + tables)
-2. Insère les utilisateurs, catégories, fournisseurs, clients, médicaments et données de démo
-3. Affiche les identifiants de connexion
+ou en CLI :
 
-> Si la base contient déjà des utilisateurs, le script affiche « Base déjà initialisée » sans écraser les données.
+```bash
+C:\xampp\php\php.exe install\migrate.php
+```
 
-### 4. Accéder à l'application
+`migrate_v2.sql` ajoute colonnes, tables intelligence et rétroactive les lots depuis les achats existants.
+
+### Accès application
 
 ```
 http://localhost/RoyalUI/
 ```
 
-(redirige vers `index.html` — page de connexion)
+→ `index.html` (connexion). Après login, redirection selon le rôle (`caisse.html` pour vendeur par défaut).
 
 ---
 
 ## Configuration
 
-Fichier : `api/config.php`
+Fichier : **`api/config.php`**
 
-| Constante | Valeur par défaut | Description |
-|-----------|-------------------|-------------|
+| Constante | Défaut | Description |
+|-----------|--------|-------------|
 | `DB_HOST` | `127.0.0.1` | Hôte MySQL |
-| `DB_NAME` | `pharma` | Nom de la base |
+| `DB_NAME` | `pharma` | Base de données |
 | `DB_USER` | `root` | Utilisateur MySQL |
-| `DB_PASS` | `''` | Mot de passe MySQL (vide sous XAMPP) |
+| `DB_PASS` | `''` | Mot de passe (vide sous XAMPP) |
 | `DB_CHARSET` | `utf8mb4` | Encodage |
 | `SESSION_NAME` | `pharma_session` | Nom de session PHP |
-| `CORS_ORIGIN` | `*` | En-tête CORS (utile si frontend séparé) |
+| `CORS_ORIGIN` | `*` | En-tête CORS |
 
-Modifier ces valeurs selon votre environnement de production.
+**Paramètres métier** (interface `parametres.html` ou table `parametres` + `regle_metier`) :
+
+| Paramètre | Usage |
+|-----------|-------|
+| `seuil_marge_min` | Alerte prix incohérent |
+| `seuil_peremption_jours` | Fenêtre alertes péremption |
+| `objectif_ca_jour` | Notification objectif CA |
+| `delai_fournisseur_jours` | Calcul rupture imminente |
+| `email_alerte` | Email pour alertes (prêt SMTP) |
+| `regle_metier.*` | Péremption urgente, surstock, stock dormant |
+
+---
+
+## Tâches planifiées (cron)
+
+Sans cron, les alertes ne sont générées qu'à l'ouverture de l'app ou lors des ventes/achats.
+
+### Windows (Planificateur de tâches)
+
+```bat
+schtasks /create /tn "PharmaRoyalDecisions" /tr "C:\xampp\php\php.exe C:\xampp\htdocs\RoyalUI\api\cron\run_decisions.php" /sc hourly
+
+schtasks /create /tn "PharmaRoyalEscalations" /tr "C:\xampp\php\php.exe C:\xampp\htdocs\RoyalUI\api\cron\run_escalations.php" /sc daily
+```
+
+### Linux (crontab)
+
+```cron
+0 * * * * php /var/www/RoyalUI/api/cron/run_decisions.php
+0 8 * * * php /var/www/RoyalUI/api/cron/run_escalations.php
+```
+
+| Script | Rôle |
+|--------|------|
+| `run_decisions.php` | Exécute `DecisionEngine::run()` |
+| `run_escalations.php` | Escalade ruptures non résolues depuis 48 h |
 
 ---
 
 ## Base de données
 
-### Schéma relationnel
+### Schéma relationnel (simplifié)
 
 ```
 categorie ──┐
-            ├── medicament ──┬── ligne_vente ── vente ── client
+            ├── medicament ──┬── lot_stock (FEFO) ← ligne_achat
 fournisseur ├── achat ─────┤
             │   ligne_achat┘
-            └── mouvement_stock (traçabilité ENTREE / SORTIE)
+            ├── bon_commande ← recommandation
+            │
+            ├── vente ── ligne_vente ── ligne_vente_lot → lot_stock
+            │     ↑ id_utilisateur (vendeur)
+            │
+            ├── mouvement_stock
+            ├── inventaire / ligne_inventaire
+            ├── notification / recommandation
+            └── session_caisse (clôture)
 
-utilisateur (authentification)
-parametres  (nom pharmacie, devise — pas encore d'UI)
-audit_log   (journal d'actions — écriture silencieuse)
+utilisateur ── utilisateur_preferences
+            └── activite_utilisateur
+
+parametres · regle_metier · audit_log
 ```
 
-### Tables détaillées
+### Tables (22)
 
-#### `categorie`
-| Colonne | Type | Description |
-|---------|------|-------------|
-| `id` | INT PK AI | Identifiant |
-| `nom` | VARCHAR(100) UNIQUE | Nom de la catégorie |
-| `created_at` | TIMESTAMP | Date de création |
+| Table | Rôle |
+|-------|------|
+| `categorie`, `fournisseur`, `client`, `utilisateur` | Référentiels |
+| `medicament` | Catalogue + `stock_actuel` agrégé |
+| `vente`, `ligne_vente` | Tickets (`id_utilisateur`, `statut`, `montant_total`) |
+| `achat`, `ligne_achat` | Réceptions + `date_peremption` |
+| `lot_stock`, `ligne_vente_lot` | **FEFO** — lots et consommation à la vente |
+| `mouvement_stock` | Journal ENTREE / SORTIE |
+| `notification` | Alertes persistantes (priorité, lu, lien action) |
+| `recommandation` | Suggestions actionnables (JSON payload) |
+| `regle_metier` | Seuils configurables par clé |
+| `parametres` | Identité pharmacie + seuils globaux |
+| `bon_commande`, `ligne_bon_commande` | Commandes fournisseur (brouillon → envoyé) |
+| `inventaire`, `ligne_inventaire` | Inventaire physique et écarts |
+| `session_caisse` | Ouverture / clôture, écart caisse |
+| `utilisateur_preferences` | Page d'accueil, thème, notifications email |
+| `activite_utilisateur` | Historique actions (briefing, analytics) |
+| `audit_log` | Traçabilité actions sensibles |
 
-#### `fournisseur`
-| Colonne | Type | Description |
-|---------|------|-------------|
-| `id` | INT PK AI | Identifiant |
-| `nom` | VARCHAR(150) | Raison sociale |
-| `telephone` | VARCHAR(50) NULL | Téléphone |
-| `email` | VARCHAR(150) NULL | Email |
-| `created_at` | TIMESTAMP | Date de création |
+### Colonnes clés `vente`
 
-#### `client`
-| Colonne | Type | Description |
-|---------|------|-------------|
-| `id` | INT PK AI | Identifiant |
-| `nom` | VARCHAR(100) | Nom du client |
-| `telephone` | VARCHAR(50) NULL | Téléphone |
-| `created_at` | TIMESTAMP | Date de création |
-
-#### `utilisateur`
-| Colonne | Type | Description |
-|---------|------|-------------|
-| `id` | INT PK AI | Identifiant |
-| `nom` | VARCHAR(100) | Nom affiché |
-| `email` | VARCHAR(150) UNIQUE | Identifiant de connexion |
-| `mot_de_passe` | VARCHAR(255) | Hash bcrypt (`password_hash`) |
-| `role` | ENUM | `admin`, `gestionnaire`, `vendeur` |
-| `created_at` | TIMESTAMP | Date de création |
-
-#### `medicament`
-| Colonne | Type | Description |
-|---------|------|-------------|
-| `id` | INT PK AI | Identifiant |
-| `nom` | VARCHAR(150) | Désignation |
-| `prix_achat` | DECIMAL(10,2) | Prix d'achat unitaire |
-| `prix_vente` | DECIMAL(10,2) | Prix de vente unitaire |
-| `stock_actuel` | INT | Quantité en stock |
-| `stock_min` | INT | Seuil d'alerte (défaut : 5) |
-| `id_categorie` | INT FK NULL | Catégorie |
-| `code_barre` | VARCHAR(50) NULL | Code-barres |
-| `actif` | TINYINT(1) | 1 = visible, 0 = suppression logique |
-| `created_at` | TIMESTAMP | Date de création |
-
-#### `vente` / `ligne_vente`
-- **vente** : en-tête ticket (`id_client` optionnel, `date_vente`)
-- **ligne_vente** : `id_vente`, `id_medicament`, `quantite`, `prix_vente` (figé au moment de la vente)
-
-#### `achat` / `ligne_achat`
-- **achat** : en-tête réception (`id_fournisseur`, `date_achat`)
-- **ligne_achat** : `quantite`, `prix_achat`, **`date_peremption`** (obligatoire — sert aux alertes)
-
-#### `mouvement_stock`
-Journal de tous les mouvements :
 | Colonne | Description |
 |---------|-------------|
-| `type_mouvement` | `ENTREE` ou `SORTIE` |
-| `id_reference` | ID vente ou achat (0 pour ajustement manuel) |
-| `quantite` | Quantité du mouvement |
+| `id_client` | Client optionnel |
+| `id_utilisateur` | Vendeur ayant encaissé |
+| `statut` | `validee` ou `annulee` |
+| `montant_total` | Total figé du ticket |
 
-#### `parametres`
-`nom_pharmacie`, `adresse`, `telephone`, `devise` — table prévue, **sans interface graphique** pour l'instant.
-
-#### `audit_log`
-`id_utilisateur`, `action`, `table_cible`, `id_cible` — journalisation des actions sensibles.
-
-### Données de démo (seed)
+### Données de démo (`seed.php`)
 
 | Élément | Contenu |
 |---------|---------|
-| Catégories | Antalgique, Antibiotique, Anti-inflammatoire, Vitamines, Dermatologie |
-| Fournisseurs | MediSupply SARL, PharmaDistrib |
-| Clients | Jean Dupont, Marie Court, Client passage |
-| Médicaments | 5 produits avec stocks variés (dont rupture et stock bas) |
-| Achat démo | Ibuprofène avec péremption à J+20 (alerte péremption) |
+| Comptes | admin, gestionnaire, vendeur (`admin123`) |
+| Catégories | 5 familles thérapeutiques |
+| Fournisseurs | MediSupply, PharmaDistrib |
+| Clients | 3 clients dont « passage » |
+| Médicaments | 5 produits (rupture, stock bas, OK) |
+| Achat démo | Ibuprofène, péremption J+20 |
+| Règles métier | 5 règles par défaut |
 
 ---
 
 ## Authentification et rôles
 
-### Mécanisme
+### Flux de connexion
 
-1. `POST auth/login` — vérifie email + mot de passe, crée la session PHP
-2. Chaque requête API protégée appelle `require_auth()` dans `api/helpers.php`
-3. Le frontend envoie `credentials: 'include'` pour transmettre le cookie de session
-4. `PharmaAuth.requireAuth()` redirige vers `index.html` si non connecté
+1. `POST auth/login` → session + `DecisionEngine::run()` + briefing
+2. Réponse : `{ user, redirect, briefing }` — redirection selon `utilisateur_preferences` ou rôle
+3. Requêtes suivantes : cookie session, `require_auth()` côté API
 
-### Matrice des rôles
+### Matrice d'accès
 
 | Page / API | admin | gestionnaire | vendeur |
 |------------|:-----:|:------------:|:-------:|
-| Tableau de bord | ✅ | ✅ | ✅ |
-| Caisse | ✅ | ✅ | ✅ |
-| Ventes (lecture) | ✅ | ✅ | ✅ |
+| Tableau de bord, briefing | ✅ | ✅ | ✅ |
+| Caisse, clôture | ✅ | ✅ | ✅ |
+| Ventes (lecture, ticket) | ✅ | ✅ | ✅ |
+| Annulation vente | ✅ | ✅ | ❌ |
 | Clients | ✅ | ✅ | ✅ |
-| Médicaments | ✅ | ✅ | ❌ |
-| Catégories | ✅ | ✅ | ❌ |
-| Stock | ✅ | ✅ | ❌ |
-| Achats | ✅ | ✅ | ❌ |
-| Fournisseurs | ✅ | ✅ | ❌ |
-| Rapports | ✅ | ✅ | ❌ |
-| Utilisateurs | ✅ | ❌ | ❌ |
+| Médicaments, catégories, stock, inventaire | ✅ | ✅ | ❌ |
+| Achats, fournisseurs | ✅ | ✅ | ❌ |
+| Rapports, export CSV | ✅ | ✅ | ❌ |
+| Recommandations, notifications | ✅ | ✅ | ✅ (lecture) |
+| Paramètres, audit, utilisateurs | ✅ | ❌ | ❌ |
 
-Le menu latéral (`layout.js`) filtre automatiquement les entrées selon le rôle connecté.
+Le menu (`layout.js`) et l'API appliquent ces restrictions indépendamment.
 
 ---
 
 ## Pages de l'application
 
-| Fichier | Titre | Script page | Onglets (`data-default-tab`) |
-|---------|-------|-------------|------------------------------|
+| Fichier | Titre | Script | Onglet par défaut |
+|---------|-------|--------|-------------------|
 | `index.html` | Connexion | inline | — |
 | `home.html` | Tableau de bord | `dashboard.js` | — |
 | `caisse.html` | Caisse POS | `caisse.js` | — |
@@ -313,202 +355,174 @@ Le menu latéral (`layout.js`) filtre automatiquement les entrées selon le rôl
 | `achats.html` | Achats | `achats.js` | `reception` |
 | `fournisseurs.html` | Fournisseurs | `fournisseurs.js` | `liste` |
 | `clients.html` | Clients | `clients.js` | `liste` |
-| `utilisateurs.html` | Utilisateurs | `utilisateurs.js` | `liste` |
 | `rapports.html` | Rapports | `rapports.js` | — |
+| `parametres.html` | Paramètres | `parametres.js` | — |
+| `audit.html` | Audit | `audit.js` | — |
+| `utilisateurs.html` | Utilisateurs | `utilisateurs.js` | `liste` |
 
-### Détail par page
+### `home.html` — Tableau de bord par rôle
 
-#### `index.html` — Connexion
-- Formulaire email / mot de passe
-- Affichage/masquage du mot de passe
-- Redirection vers `home.html` après succès
-- Identifiants pré-remplis en démo
+- **Briefing** : salutation, stats du jour, favoris (vendeur), liens d'action
+- **KPI** : CA jour, ventes, alertes stock, péremptions 30 j
+- **Graphique** CA 7 jours (masqué pour vendeur)
+- **Top produits** 30 jours
+- **Recommandations** (gestionnaire/admin) : appliquer → BC brouillon, ignorer
 
-#### `home.html` — Tableau de bord
-- **4 KPI** : CA jour, ventes jour, alertes stock (bas + ruptures), péremptions 30 j
-- **Graphique** ligne : CA sur 7 jours (Chart.js)
-- **Top 5 produits** vendus sur 30 jours
-- **Centre d'alertes** (`#alertes`, ancrage `home.html#alertes`) :
-  - Stock bas / rupture → lien médicaments
-  - Péremption proche → lien stock
-  - Réapprovisionnement suggéré → lien achats
-- Badge cloche navbar alimenté par `GET alertes`
+### `caisse.html` — Point de vente
 
-#### `caisse.html` — Point de vente
-- Interface POS dédiée (`pharma-pos-body`)
-- Recherche temps réel sur nom / code-barres
-- Liste produits **une ligne par produit** avec statut stock
-- Panier sticky : quantités, total, client optionnel
-- Validation → `POST ventes` avec contrôle stock transactionnel
-- Raccourcis : **F2** focus recherche, **Échap** vider panier
+- Produits triés par **favoris vendeur** (top ventes 30 j)
+- Session caisse auto-ouverte, **clôture** avec saisie montant réel et calcul d'écart
+- FEFO transparent à la validation
+- **Ticket** HTML imprimable après vente
+- Raccourcis : **F2** recherche · **F10** valider · **Échap** effacer recherche
 
-#### `medicaments.html`
-- Formulaire CRUD (admin/gestionnaire)
-- Liste avec filtres : Tous, En stock, Stock bas, Rupture
-- Colonnes : produit, catégorie, prix, barre de stock, marge %, actions
-- Suppression logique (`actif = 0`)
+### `stock.html` — Onglets
 
-#### `categories.html`
-- CRUD simple nom de catégorie
+| Onglet | Contenu |
+|--------|---------|
+| `etat` | KPI cliquables, filtres (Tous / Disponibles / Stock OK / Bas / Rupture), timeline mouvements |
+| `mouvement` | Ajustement ENTREE/SORTIE avec prévisualisation |
+| `inventaire` | Saisie quantités réelles, application des écarts au stock |
 
-#### `stock.html`
-- **Onglet Vue d'ensemble** :
-  - KPI cliquables (total, stock OK, stock bas, ruptures)
-  - Filtres : Tous, Disponibles (>0), Stock OK, Stock bas, Rupture
-  - Compteur `X / Y · filtre`
-  - Tableau sans DataTables (filtrage client fiable)
-  - Clic ligne → pré-remplit l'onglet ajustement
-  - Timeline des 12 derniers mouvements
-- **Onglet Ajustement manuel** :
-  - Sélection médicament, type ENTREE/SORTIE, quantité
-  - Prévisualisation stock avant/après avec jauge et conseils
-  - Confirmation SweetAlert avant enregistrement
+### `ventes.html`
 
-#### `ventes.html`
-- Historique des ventes (date, client, lignes, total)
-- Détail d'une vente au clic
+- Colonnes : ticket, date, **vendeur**, client, total, **statut**
+- Actions : détail, **imprimer ticket**, **annuler** (admin/gestionnaire)
 
-#### `achats.html`
-- **Réception** : fournisseur + lignes (médicament, qté, prix, date péremption)
-- Incrémente stock, met à jour `prix_achat`, crée mouvement ENTREE
-- **Historique** des réceptions
+### `parametres.html` (admin)
 
-#### `fournisseurs.html`
-- KPI : total fournisseurs, nb achats, montant total
-- Liste avec nb réceptions et volume par fournisseur
+Identité pharmacie, seuils, objectif CA, règles métier éditables.
 
-#### `clients.html`
-- CRUD clients (nom, téléphone)
+### `audit.html` (admin)
 
-#### `utilisateurs.html` (admin)
-- CRUD utilisateurs avec rôle et mot de passe
-- Impossible de supprimer son propre compte
-
-#### `rapports.html`
-- Sélecteur période (7 / 30 / 90 jours)
-- CA période, top 10 ventes, marges par catégorie, stock dormant
+Journal `audit_log` avec stats agrégées sur 7 jours.
 
 ---
 
 ## API REST
 
-**URL de base** : `api/index.php?r=`
+**Base** : `api/index.php?r=`  
+**Succès** : `{ "success": true, ... }` · **Erreur** : `{ "success": false, "error": "..." }`
 
-**Format réponse succès** : `{ "success": true, ... }`  
-**Format erreur** : `{ "success": false, "error": "message" }`  
-**Corps JSON** : `Content-Type: application/json`
-
-### Auth — `r=auth/{action}`
+### Auth — `auth/{action}`
 
 | Méthode | Route | Auth | Description |
 |---------|-------|------|-------------|
-| POST | `auth/login` | Non | `{ email, password }` → `{ user }` |
-| POST | `auth/logout` | Session | Détruit la session |
+| POST | `auth/login` | Non | Login → `user`, `redirect`, `briefing` |
+| POST | `auth/logout` | Session | Déconnexion |
 | GET | `auth/me` | Session | Utilisateur courant |
 
-### Dashboard — `r=dashboard`
+### Intelligence
 
-| Méthode | Auth | Retour |
-|---------|------|--------|
-| GET | Tous | `kpis`, `ventes_7j`, `top_produits` |
+| Méthode | Route | Rôles | Description |
+|---------|-------|-------|-------------|
+| GET | `briefing` | Tous | Briefing personnalisé |
+| GET | `notifications` | Tous | Liste + `unread` |
+| PUT | `notifications/{id}` | Tous | Marquer lu |
+| POST | `notifications/lire-tout` | Tous | Tout marquer lu |
+| GET | `recommandations?statut=nouvelle` | admin, gestionnaire | Liste recommandations |
+| PUT | `recommandations/{id}` | admin, gestionnaire | `statut` + option `creer_bc` |
+| POST | `recommandations/executer` | admin, gestionnaire | Lance DecisionEngine |
+| GET | `alertes` | Tous | Alertes legacy (dashboard) |
 
-**KPIs** : `ca_jour`, `ventes_jour`, `stock_bas`, `ruptures`, `peremption_30j`
+### Paramètres et préférences
 
-### Alertes — `r=alertes`
+| Méthode | Route | Rôles | Description |
+|---------|-------|-------|-------------|
+| GET | `parametres` | Tous | Paramètres + règles métier |
+| PUT | `parametres` | admin | Mise à jour |
+| GET | `preferences` | Tous | Préférences utilisateur |
+| PUT | `preferences` | Tous | Page d'accueil, thème, etc. |
 
-| Méthode | Auth | Retour |
-|---------|------|--------|
-| GET | Tous | `stock_bas`, `peremption`, `reappro`, `total` |
-
-- **stock_bas** : produits où `stock_actuel <= stock_min`
-- **peremption** : lots avec péremption dans les 90 prochains jours
-- **reappro** : produits en alerte avec ventes sur 30 j et quantité suggérée
-
-### Médicaments — `r=medicaments` / `r=medicaments/{id}`
-
-| Méthode | Rôles | Description |
-|---------|-------|-------------|
-| GET | Tous | Liste active ; `?q=` recherche nom/code-barres ; champs calculés `statut_stock`, `marge_pct` |
-| POST | admin, gestionnaire | Créer |
-| PUT | admin, gestionnaire | Modifier |
-| DELETE | admin, gestionnaire | Désactiver (`actif=0`) |
-
-### Catégories — `r=categories` / `r=categories/{id}`
+### Ventes — `ventes` / `ventes/{id}` / `ventes/{id}/annuler`
 
 | Méthode | Rôles | Description |
 |---------|-------|-------------|
-| GET | admin, gestionnaire | Liste |
-| POST | admin, gestionnaire | Créer |
-| PUT | admin, gestionnaire | Modifier |
-| DELETE | admin, gestionnaire | Supprimer |
+| GET | Tous | Historique ou détail (`vendeur_nom`, `lignes`, `total`) |
+| GET | `ventes/mes-ventes` | Tous | Ventes du jour de l'utilisateur connecté |
+| POST | Tous | Créer vente — FEFO, `id_utilisateur`, DecisionEngine |
+| POST | `ventes/{id}/annuler` | admin, gestionnaire | Annulation + restock lots |
 
-### Clients — `r=clients` / `r=clients/{id}`
+### Tickets — `tickets/{id}`
 
-| Méthode | Rôles | Description |
-|---------|-------|-------------|
-| GET | Tous | Liste |
-| POST | Tous | Créer |
-| PUT | Tous | Modifier |
-| DELETE | Tous | Supprimer |
+| Méthode | Description |
+|---------|-------------|
+| GET | Ticket HTML imprimable (`?format=json` pour JSON) |
 
-### Fournisseurs — `r=fournisseurs` / `r=fournisseurs/{id}`
+### Caisse — `caisse/{action}`
 
-| Méthode | Rôles | Description |
-|---------|-------|-------------|
-| GET | admin, gestionnaire | Liste + `stats` (total, nb_achats, montant_total) + `nb_achats`/`montant_achats` par fournisseur |
-| POST | admin, gestionnaire | Créer |
-| PUT | admin, gestionnaire | Modifier |
-| DELETE | admin, gestionnaire | Supprimer |
+| Méthode | Action | Description |
+|---------|--------|-------------|
+| GET | `session` | Session ouverte |
+| POST | `ouvrir` | `{ fond_caisse }` |
+| POST | `cloturer` | `{ ca_reel }` → `ca_theorique`, `ecart` |
+| GET | `historique` | Clôtures passées (admin, gestionnaire) |
 
-### Utilisateurs — `r=utilisateurs` / `r=utilisateurs/{id}`
+### Inventaire — `inventaire`
 
-| Méthode | Rôles | Description |
-|---------|-------|-------------|
-| GET | admin | Liste (sans mot de passe) |
-| POST | admin | Créer `{ nom, email, password, role }` |
-| PUT | admin | Modifier (champs partiels, hash si password) |
-| DELETE | admin | Supprimer (sauf soi-même) |
+| Méthode | Description |
+|---------|-------------|
+| GET | `inventaire/produits` | Liste avec stock théorique |
+| GET | `inventaire` | Historique inventaires |
+| POST | `inventaire` | `{ lignes: [{ id_medicament, stock_theorique, stock_reel }] }` |
 
-### Ventes — `r=ventes` / `r=ventes/{id}`
+### Bons de commande — `bons-commande`
 
-| Méthode | Rôles | Description |
-|---------|-------|-------------|
-| GET | Tous | Historique (200 derniers) ou détail avec `lignes` et `total` |
-| POST | Tous | Créer vente `{ id_client?, lignes: [{ id_medicament, quantite, prix_vente? }] }` |
+| Méthode | Description |
+|---------|-------------|
+| GET | Liste ou détail `{id}` |
+| PUT | `bons-commande/{id}` | Changer `statut` (brouillon, envoye, recu, annule) |
 
-**Transaction POST vente** :
-1. Vérification stock (SELECT … FOR UPDATE)
-2. Insertion vente + lignes
-3. Décrément stock
-4. Mouvement SORTIE lié à l'ID vente
-
-### Achats — `r=achats` / `r=achats/{id}`
+### Audit — `audit`
 
 | Méthode | Rôles | Description |
 |---------|-------|-------------|
-| GET | admin, gestionnaire | Historique ou détail |
-| POST | admin, gestionnaire | Réception `{ id_fournisseur, lignes: [{ id_medicament, quantite, prix_achat, date_peremption }] }` |
+| GET | admin | Journal + `stats` 7 jours |
 
-**Transaction POST achat** :
-1. Insertion achat + lignes
-2. Incrément stock + mise à jour `prix_achat`
-3. Mouvement ENTREE lié à l'ID achat
+### Routes existantes (inchangées dans l'esprit)
 
-### Stock — `r=stock` / `r=stock/mouvements`
+| Ressource | Points clés |
+|-----------|-------------|
+| `dashboard` | KPI, ventes_7j, top_produits |
+| `medicaments` | CRUD, `?q=`, `statut_stock`, `marge_pct` |
+| `categories`, `clients`, `fournisseurs`, `utilisateurs` | CRUD standard |
+| `achats` | POST crée **lot_stock** (FEFO) |
+| `stock`, `stock/mouvements` | Niveaux et ajustements |
+| `rapports?jours=30` | Stats + `&export=csv` |
 
-| Méthode | Rôles | Description |
-|---------|-------|-------------|
-| GET | admin, gestionnaire | Niveaux stock tous produits actifs |
-| GET | `stock/mouvements` | 300 derniers mouvements |
-| POST | admin, gestionnaire | Ajustement `{ id_medicament, type_mouvement, quantite, motif? }` |
+---
 
-Types : `ENTREE`, `SORTIE` — refus si sortie > stock disponible.
+## Moteur de décision
 
-### Rapports — `r=rapports?jours=30`
+Fichier : **`api/services/DecisionEngine.php`**
 
-| Méthode | Rôles | Retour |
-|---------|-------|--------|
-| GET | admin, gestionnaire | `ca_periode`, `top_ventes`, `marges_categories`, `stock_mort` |
+### Déclencheurs
+
+- Connexion (`auth/login`)
+- Chaque vente / achat
+- `POST recommandations/executer`
+- Cron `run_decisions.php`
+
+### Règles implémentées
+
+| Type | Logique | Sortie |
+|------|---------|--------|
+| `STOCK_CRITIQUE` | Rupture ou vélocité → rupture avant délai fournisseur | Notification + recommandation COMMANDE_SUGGEREE |
+| `REAPPRO` | Stock ≤ minimum | Recommandation quantité |
+| `SURSTOCK` | Stock > ratio × minimum | Notification gestionnaire |
+| `ANOMALIE_PRIX` | Marge < seuil ou PV < PA | Notification admin |
+| `PEREMPTION_URGENTE` | Lot expire sous N jours | Notification + promo suggérée |
+| `STOCK_DORMANT` | Pas de vente depuis N jours | Notification |
+| `OBJECTIF_CA` | CA jour vs objectif (après 18 h) | Notification admin |
+| `ESCALADE_RUPTURE` | Ruptures non résolues | Notification critique admin |
+
+### Scoring réappro
+
+```
+vélocité = ventes_30j / 30
+jours_restants = stock_actuel / vélocité
+besoin = max(stock_min × 2 - stock_actuel, stock_min)
+```
 
 ---
 
@@ -516,140 +530,78 @@ Types : `ENTREE`, `SORTIE` — refus si sortie > stock disponible.
 
 ```
 RoyalUI/
-├── index.html                 # Page de connexion
-├── home.html                  # Tableau de bord
-├── caisse.html                # Point de vente
-├── medicaments.html
-├── categories.html
-├── stock.html
-├── ventes.html
-├── achats.html
-├── fournisseurs.html
-├── clients.html
-├── utilisateurs.html
-├── rapports.html
+├── index.html · home.html · caisse.html · stock.html · ventes.html
+├── medicaments.html · categories.html · achats.html · fournisseurs.html
+├── clients.html · rapports.html · parametres.html · audit.html · utilisateurs.html
 │
 ├── api/
-│   ├── index.php              # Routeur API
-│   ├── config.php             # Configuration BDD / session
-│   ├── helpers.php            # Auth, JSON, CORS, audit, stock_badge
-│   └── routes/
-│       ├── auth.php
-│       ├── dashboard.php
-│       ├── alertes.php
-│       ├── medicaments.php
-│       ├── categories.php
-│       ├── clients.php
-│       ├── fournisseurs.php
-│       ├── utilisateurs.php
-│       ├── ventes.php
-│       ├── achats.php
-│       ├── stock.php
-│       └── rapports.php
+│   ├── index.php              # Routeur (id + subAction)
+│   ├── config.php · helpers.php
+│   ├── services/
+│   │   ├── DecisionEngine.php
+│   │   ├── NotificationService.php
+│   │   ├── LotStockService.php      # FEFO
+│   │   ├── ParametresService.php
+│   │   └── ActiviteService.php
+│   ├── routes/                # 20 fichiers de routes
+│   └── cron/
+│       ├── run_decisions.php
+│       └── run_escalations.php
 │
 ├── install/
-│   ├── setup.sql              # Schéma complet
-│   └── seed.php               # Installation + données démo
+│   ├── setup.sql              # Schéma complet v2
+│   ├── migrate_v2.sql         # Migration bases existantes
+│   ├── migrate.php
+│   └── seed.php
 │
 └── assets/
-    ├── css/
-    │   ├── style.css          # Thème RoyalUI
-    │   └── pharma.css         # Design system PharmaRoyal
-    ├── js/
-    │   ├── app/
-    │   │   ├── api.js         # Client HTTP + formatMoney/formatDate
-    │   │   ├── auth.js        # Session frontend
-    │   │   ├── layout.js      # Menu, navbar, badge alertes
-    │   │   ├── tabs.js        # Onglets + DataTables
-    │   │   ├── ui.js          # Badges, barres stock, filtres
-    │   │   ├── swal.js        # Dialogues SweetAlert2
-    │   │   ├── toast.js       # Notifications
-    │   │   └── pages/         # Logique par page
-    │   │       ├── dashboard.js
-    │   │       ├── caisse.js
-    │   │       ├── medicaments.js
-    │   │       ├── categories.js
-    │   │       ├── stock.js
-    │   │       ├── ventes.js
-    │   │       ├── achats.js
-    │   │       ├── fournisseurs.js
-    │   │       ├── clients.js
-    │   │       ├── utilisateurs.js
-    │   │       └── rapports.js
-    │   ├── template.js        # Scripts thème RoyalUI
-    │   └── ...
-    ├── vendors/               # Bootstrap, Chart.js, Themify
-    └── images/                # Logos, assets UI
+    ├── css/pharma.css · style.css
+    └── js/app/
+        ├── api.js · auth.js · layout.js · notifications.js
+        ├── ui.js · swal.js · toast.js · tabs.js
+        └── pages/             # Un script par page métier
 ```
 
 ---
 
 ## Modules JavaScript
 
-Chaque page protégée charge dans l'ordre :
+### Chargement type (pages protégées)
 
-1. `vendor.bundle.base.js` (jQuery, Bootstrap)
-2. Scripts thème (`off-canvas.js`, `template.js`, …)
-3. DataTables (si table `.data-table`)
-4. SweetAlert2
-5. `api.js` → `swal.js` → `ui.js` → `toast.js` → `auth.js` → `layout.js`
-6. `tabs.js` (si onglets)
-7. `pages/{page}.js`
-
-### `PharmaAPI` (`api.js`)
-```javascript
-PharmaAPI.get('medicaments')
-PharmaAPI.post('ventes', { lignes: [...] })
-PharmaAPI.put('medicaments/3', { nom: '...' })
-PharmaAPI.del('clients/2')
+```
+vendor.bundle → template → DataTables? → SweetAlert2
+→ api.js → swal.js → ui.js → toast.js → auth.js
+→ notifications.js → layout.js → tabs.js? → pages/*.js
 ```
 
-### `PharmaAuth` (`auth.js`)
-- `login`, `logout`, `me`, `requireAuth(roles?)`
-- Redirection automatique si session expirée
+### Modules principaux
 
-### `PharmaLayout` (`layout.js`)
-- `init()` : auth + sidebar + navbar + badge alertes
-- Menu filtré par rôle (tableau `menu[]`)
-
-### `PharmaSwal` (`swal.js`)
-- `confirmDelete`, `confirmSave`, `confirmLogout`, `confirmSale`, `confirmStockMovement`
-- `toast`, `error`
-
-### Utilitaires `ui.js`
-- `stockBadge(statut)` — badges HTML ok / bas / rupture
-- `stockBarHtml()` — barre de progression stock
-- `margeBadge(pct)` — badge marge coloré
-- `bindFilterChips()` — gestion puces de filtre
-- `pharmaActions()` — boutons modifier/supprimer
-- `setFormMode()` — bascule formulaire création/édition
-
-### `tabs.js`
-- `initPageTabs()` — navigation par hash URL (`#liste`, `#etat`, …)
-- `initDataTable(selector)` — DataTables français sur `.data-table`
+| Module | Rôle |
+|--------|------|
+| `PharmaAPI` | `get`, `post`, `put`, `del` — `formatMoney`, `formatDate` |
+| `PharmaAuth` | Login (retourne `redirect`), logout, `requireAuth` |
+| `PharmaLayout` | Menu par rôle, navbar utilisateur |
+| `PharmaNotifications` | Cloche, dropdown, lu/non lu, polling 30 s |
+| `PharmaSwal` | Confirmations vente, stock, suppression ; toasts |
+| `ui.js` | `stockBadge`, `stockBarHtml`, `bindFilterChips`, `pharmaEmpty` |
+| `tabs.js` | Onglets hash URL, `initDataTable` |
 
 ---
 
 ## Design system
 
-Fichier principal : **`assets/css/pharma.css`**
+Fichier : **`assets/css/pharma.css`**
 
-| Composant | Classes | Usage |
-|-----------|---------|-------|
-| KPI | `.pharma-kpi`, `.pharma-kpi--success/warning/danger` | Cartes statistiques |
-| KPI cliquable | `.pharma-kpi--clickable`, `.pharma-kpi--active` | Filtres stock |
-| Page header | `.pharma-page-header`, `.pharma-breadcrumb` | En-têtes de page |
-| Boutons | `.btn-pharma`, `.btn-pharma-primary/outline` | Actions |
-| Cartes | `.pharma-card`, `.pharma-card-header` | Conteneurs contenu |
-| Filtres | `.pharma-chip`, `.pharma-filter-chips` | Puces de filtrage |
-| Stock | `.pharma-stock-bar`, `.badge-stock-*` | Visualisation niveaux |
-| POS | `.pharma-pos-*` | Interface caisse |
-| CRUD | `.pharma-crud-page`, `.pharma-form-grid` | Pages formulaire/liste |
-| Alertes | `.pharma-alert-item` | Dashboard alertes |
-| SweetAlert | `.pharma-swal-*` | Modales personnalisées |
-| Vide | `.pharma-empty` | États sans données |
-
-Le thème de base **RoyalUI** (`assets/css/style.css`) fournit la sidebar, navbar et grille Bootstrap.
+| Composant | Classes |
+|-----------|---------|
+| KPI | `.pharma-kpi`, `.pharma-kpi--success/warning/danger`, `.pharma-kpi--clickable` |
+| Notifications | `.pharma-notif-item`, `.pharma-notif--critique/haute/info` |
+| Briefing | `.pharma-briefing` |
+| POS | `.pharma-pos-*`, `.pharma-product-card`, `.pharma-cart-*` |
+| Stock | `.pharma-stock-bar`, `.badge-stock-*` |
+| Filtres | `.pharma-chip`, `.pharma-filter-chips` |
+| Modales | `.pharma-swal-*` |
+| CRUD | `.pharma-crud-page`, `.pharma-form-grid`, `.pharma-table-compact` |
 
 ---
 
@@ -657,79 +609,69 @@ Le thème de base **RoyalUI** (`assets/css/style.css`) fournit la sidebar, navba
 
 ### Statuts de stock
 
-Fonction `stock_badge($stock, $min)` dans `api/helpers.php` — recalculée aussi côté client dans `stock.js` :
+| Condition | Statut |
+|-----------|--------|
+| `stock_actuel <= 0` | `rupture` |
+| `stock_actuel <= stock_min` | `bas` |
+| Sinon | `ok` |
 
-| Condition | Statut | Badge |
-|-----------|--------|-------|
-| `stock_actuel <= 0` | `rupture` | Rupture |
-| `stock_actuel <= stock_min` | `bas` | Stock bas |
-| Sinon | `ok` | En stock / Stock OK |
+### FEFO (First Expired, First Out)
 
-**Filtres page stock** :
-- **Disponibles** : `stock_actuel > 0` (OK + bas)
-- **Stock OK** : au-dessus du seuil minimum
-- **Stock bas** : `> 0` et `<= stock_min`
-- **Rupture** : `<= 0`
+1. **Réception achat** → `lot_stock` (qté, péremption, lien `ligne_achat`)
+2. **Vente** → `LotStockService::consumeFefo()` — lots triés par `date_peremption ASC`
+3. **Annulation** → `restoreFromVente()` — quantités rendues aux lots d'origine via `ligne_vente_lot`
 
-### Mouvements de stock
-
-Tout changement de quantité génère une ligne `mouvement_stock` :
+### Mouvements `mouvement_stock`
 
 | Origine | Type | `id_reference` |
 |---------|------|----------------|
-| Vente caisse | SORTIE | ID vente |
-| Réception achat | ENTREE | ID achat |
-| Ajustement manuel | ENTREE / SORTIE | 0 |
-
-### Marge
-
-```
-marge_pct = ((prix_vente - prix_achat) / prix_achat) × 100
-```
-
-Affichée sur la liste médicaments ; badge rouge si marge < 15 %.
-
-### Intelligence alertes (niveau 1)
-
-- **Réapprovisionnement** : produits en stock bas ayant eu des ventes sur 30 jours
-- Quantité suggérée : `max(stock_min × 2 - stock_actuel, stock_min)`
+| Vente | SORTIE | ID vente |
+| Achat | ENTREE | ID achat |
+| Ajustement | ENTREE/SORTIE | 0 |
+| Inventaire | ENTREE/SORTIE | ID inventaire |
+| Annulation vente | ENTREE | ID vente |
 
 ### Transactions
 
-Ventes et achats utilisent `BEGIN … COMMIT` avec `SELECT … FOR UPDATE` sur les lignes médicament pour éviter les ventes en surstock concurrentes.
+Ventes et achats : `BEGIN … COMMIT` + `SELECT … FOR UPDATE` sur les lignes médicament.
 
 ---
 
 ## Comptes de démonstration
 
-| Email | Mot de passe | Rôle |
-|-------|--------------|------|
-| `admin@pharma.local` | `admin123` | Administrateur |
-| `gestion@pharma.local` | `admin123` | Gestionnaire |
-| `vendeur@pharma.local` | `admin123` | Vendeur |
+| Email | Mot de passe | Rôle | Redirection login |
+|-------|--------------|------|-------------------|
+| `admin@pharma.local` | `admin123` | Administrateur | `home.html` |
+| `gestion@pharma.local` | `admin123` | Gestionnaire | `home.html` |
+| `vendeur@pharma.local` | `admin123` | Vendeur | `caisse.html` |
 
-> ⚠️ Changer ces mots de passe avant toute mise en production.
+> ⚠️ Changer les mots de passe et supprimer/protéger `install/` en production.
 
 ---
 
 ## Parcours utilisateur
 
-### Vendeur — journée type
-1. Connexion → **Tableau de bord** (vue CA)
-2. **Caisse** → recherche produit → ajout panier → validation
-3. **Ventes** → consulter l'historique
-4. **Clients** → créer un client si besoin
+### Vendeur
 
-### Gestionnaire — réception marchandise
-1. **Fournisseurs** → vérifier le fournisseur
-2. **Achats** → onglet Réception → lignes + dates péremption
-3. **Stock** → contrôler les niveaux après réception
-4. **Rapports** → analyser CA et marges
+1. Login → **caisse** (briefing : ventes du jour, favoris)
+2. Vente → ticket optionnel → notifications si rupture
+3. **Clôture caisse** en fin de journée
+4. **Ventes** → historique personnel
+
+### Gestionnaire
+
+1. Login → **dashboard** + recommandations
+2. **Appliquer** une reco → bon de commande brouillon
+3. **Achats** → réception (crée lots FEFO)
+4. **Stock** → inventaire physique si écarts
+5. **Rapports** + export CSV
 
 ### Administrateur
-- Tout ce qui précède +
-- **Médicaments / Catégories** → maintenir le catalogue
-- **Utilisateurs** → créer comptes vendeurs/gestionnaires
+
+- Paramètres pharmacie et règles métier
+- Audit des actions
+- Gestion utilisateurs
+- Annulation ventes si erreur
 
 ---
 
@@ -737,76 +679,94 @@ Ventes et achats utilisent `BEGIN … COMMIT` avec `SELECT … FOR UPDATE` sur l
 
 | Mesure | Implémentation |
 |--------|----------------|
-| Mots de passe | `password_hash` / `password_verify` (bcrypt) |
-| Sessions | PHP native, nom personnalisé |
+| Mots de passe | bcrypt (`password_hash`) |
+| Sessions | PHP native, cookie HttpOnly (config serveur) |
 | Autorisation | `require_auth(['roles'])` par route |
 | SQL | Requêtes préparées PDO |
-| CORS | Configurable (`CORS_ORIGIN`) |
-| Audit | Table `audit_log` (connexion, CRUD, ventes, achats) |
+| Audit | `audit_log` + page dédiée |
+| CORS | `CORS_ORIGIN` dans `config.php` |
 
-**Recommandations production** :
-- HTTPS obligatoire
-- Mot de passe MySQL fort
-- Restreindre `CORS_ORIGIN`
-- Supprimer ou protéger `install/seed.php`
-- Désactiver l'affichage des erreurs PHP
+**Production** : HTTPS, mot de passe MySQL fort, restreindre CORS, protéger `install/`, désactiver `display_errors`.
 
 ---
 
-## Limitations connues
+## Limitations et roadmap
+
+### Implémenté (v2)
+
+- Notifications persistantes, FEFO, DecisionEngine, recommandations, paramètres UI
+- Annulation vente, ticket imprimable, clôture caisse, inventaire physique
+- Dashboard par rôle, briefing, favoris vendeur, export CSV, audit UI
+- Bons de commande brouillon depuis recommandation
+
+### Non implémenté / partiel
 
 | Élément | État |
 |---------|------|
-| Paramètres pharmacie (`parametres`) | Table en base, **pas d'écran Paramètres** |
-| Notifications persistantes | Non implémentées |
-| Multi-dépôts / lots FIFO | Un seul `stock_actuel` par médicament |
-| Impression ticket / facture PDF | Non implémentée |
-| Code-barres scanner hardware | Recherche manuelle uniquement |
-| API pagination | Limite fixe (200 ventes, 300 mouvements) |
-| Filtres `medicaments.html` | « En stock » = statut `ok` API (pas « disponibles > 0 » comme stock.html) |
+| Envoi email/SMS réel | Champ `email_alerte` prêt, pas de SMTP |
+| WebSocket temps réel | Polling 30 s à la place |
+| PDF ticket natif | HTML imprimable via navigateur |
+| ML / prévisions avancées | Vélocité 30 j seulement |
+| Multi-dépôts | Un stock agrégé par médicament |
+| Scanner code-barres hardware | Saisie / recherche manuelle |
+| Ordonnances, interactions médicamenteuses | Hors périmètre réglementaire |
+| PWA offline | Non prévu |
+| Pagination API | Limites fixes (200 ventes, 300 mouvements, 50 notifications) |
+| Filtres `medicaments.html` | « En stock » = statut `ok` (différent de stock.html « Disponibles ») |
 
 ---
 
 ## Dépannage
 
-### « Non authentifié » / redirection login
-- Vérifier qu'Apache et PHP sessions fonctionnent
+### « Non authentifié » / boucle login
+
+- Utiliser `http://localhost/RoyalUI/` (pas `file://`)
 - Cookies autorisés pour `localhost`
-- Ne pas ouvrir les pages en `file://` — utiliser `http://localhost/RoyalUI/`
+- Vérifier qu'Apache charge les sessions PHP
 
-### Erreur base de données
-- MySQL démarré dans XAMPP
-- Exécuter `install/seed.php`
-- Vérifier `api/config.php` (user/password)
+### Erreurs SQL après mise à jour
 
-### Page blanche API
-- Consulter `C:\xampp\apache\logs\error.log`
-- Tester : `http://localhost/RoyalUI/api/index.php?r=auth/me`
+Exécuter la migration :
 
-### DataTables ne s'affiche pas
-- Vérifier la connexion internet (CDN DataTables + traduction fr-FR)
-- La table doit avoir la classe `data-table` (sauf `stock-table` volontairement exclu)
+```
+http://localhost/RoyalUI/install/migrate.php
+```
 
-### Filtres stock incorrects
-- Recharger la page après mise à jour
-- Les filtres utilisent le calcul client dans `stock.js` (indépendant de DataTables)
+Erreurs fréquentes : colonnes `vente.id_utilisateur`, tables `notification` / `lot_stock` manquantes.
+
+### Vente échoue « Lots FEFO insuffisants »
+
+- Lancer `migrate.php` pour créer les lots depuis les achats existants
+- Ou réceptionner via **Achats** (crée automatiquement les lots)
+
+### Notifications en double
+
+Le moteur peut créer plusieurs alertes si exécuté souvent ; les recommandations sont dédupliquées sur 24 h. Configurer le cron à 1 h d'intervalle minimum.
+
+### DataTables vide ou erreur CDN
+
+Connexion internet requise pour CDN DataTables (fr-FR). Le tableau stock principal n'utilise **pas** DataTables volontairement.
+
+### Logs PHP
+
+```
+C:\xampp\apache\logs\error.log
+```
+
+Test API : `http://localhost/RoyalUI/api/index.php?r=auth/me` (connecté).
 
 ---
 
-## Crédits
+## Crédits et licence
 
 - **Interface** : [RoyalUI](https://www.bootstrapdash.com/) — thème admin Bootstrap
-- **Projet métier** : PharmaRoyal — gestion de pharmacie
+- **Projet métier** : PharmaRoyal
 - **Icônes** : [Themify Icons](https://themify.me/themify-icons)
 - **Modales** : [SweetAlert2](https://sweetalert2.github.io/)
 
----
-
-## Licence
-
-Le thème RoyalUI est soumis à sa propre licence d'utilisation (voir fournisseur BootstrapDash).  
-Le code métier PharmaRoyal (API PHP, modules JS, design `pharma.css`) est fourni dans le cadre de ce projet de gestion de pharmacie.
+Le thème RoyalUI est soumis à sa propre licence (BootstrapDash).  
+Le code métier PharmaRoyal (API, services, JS, `pharma.css`) accompagne ce dépôt.
 
 ---
 
-**PharmaRoyal** — *Gérez votre pharmacie avec intelligence.*
+**PharmaRoyal v2** — *Gérez votre pharmacie. Anticipez. Décidez.*

@@ -9,8 +9,10 @@ const PharmaLayout = (() => {
     { href: 'achats.html', icon: 'ti-bag', label: 'Achats', roles: ['admin', 'gestionnaire'] },
     { href: 'fournisseurs.html', icon: 'ti-truck', label: 'Fournisseurs', roles: ['admin', 'gestionnaire'] },
     { href: 'clients.html', icon: 'ti-user', label: 'Clients', roles: ['admin', 'gestionnaire', 'vendeur'] },
-    { href: 'utilisateurs.html', icon: 'ti-id-badge', label: 'Utilisateurs', roles: ['admin'] },
     { href: 'rapports.html', icon: 'ti-bar-chart', label: 'Rapports', roles: ['admin', 'gestionnaire'] },
+    { href: 'parametres.html', icon: 'ti-settings', label: 'Paramètres', roles: ['admin'] },
+    { href: 'audit.html', icon: 'ti-list', label: 'Audit', roles: ['admin'] },
+    { href: 'utilisateurs.html', icon: 'ti-id-badge', label: 'Utilisateurs', roles: ['admin'] },
   ];
 
   function renderSidebar(role) {
@@ -48,28 +50,9 @@ const PharmaLayout = (() => {
       dropdown.insertBefore(nameEl, dropdown.firstChild);
     }
     if (nameEl && user) {
-      nameEl.textContent = user.nom;
       const roleLabel = { admin: 'Administrateur', gestionnaire: 'Gestionnaire', vendeur: 'Vendeur' }[user.role] || user.role;
       nameEl.innerHTML = `${user.nom}<br><small class="text-muted font-weight-normal">${roleLabel}</small>`;
     }
-  }
-
-  async function loadAlertBadge() {
-    try {
-      const res = await PharmaAPI.get('alertes');
-      const count = res.total || 0;
-      let badge = document.getElementById('alert-count');
-      if (!badge) {
-        const nav = document.querySelector('.navbar-nav-right');
-        if (!nav) return;
-        const li = document.createElement('li');
-        li.className = 'nav-item';
-        li.innerHTML = `<a class="nav-link pharma-nav-alert" href="home.html#alertes" title="Alertes stock et péremption"><i class="ti-bell"></i><span class="badge badge-danger" id="alert-count">${count}</span></a>`;
-        nav.insertBefore(li, nav.firstChild);
-      } else {
-        badge.textContent = count;
-      }
-    } catch (_) {}
   }
 
   async function init() {
@@ -78,7 +61,9 @@ const PharmaLayout = (() => {
     normalizeNavbar(user);
     PharmaAuth.bindLogout();
     renderSidebar(user.role);
-    loadAlertBadge();
+    if (typeof PharmaNotifications !== 'undefined') {
+      PharmaNotifications.startPolling();
+    }
     const year = document.getElementById('current-year');
     if (year) year.textContent = new Date().getFullYear();
     return user;
